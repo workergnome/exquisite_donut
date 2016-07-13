@@ -45,7 +45,7 @@ There will be no internet connection available over Ethernet.
 
 **Rule 1.0**
 
-Each drawing will have the ability to be configured at runtime with one value, which will be a number between 0 and 254 (inclusive).  This number represents the **id** of the drawing. 
+Each drawing will have the ability to be configured at runtime with one value, which will be a number between 0 and 254 (inclusive).  This number represents the **id** of the drawing.
 
 **Rule 1.1**
 
@@ -85,8 +85,8 @@ int32 (i)    | MINP   | The min number of particles allowed per-drawing         
 int32 (i)    | MAXC   | The # of particles allowed to be created or destroyed per/sec. | 10
 float32 (f)  | MAXV   | The abs max velocity of a particle as a % of horizontal width  | 0.1
 float32 (f)  | MAXA   | The abs max delta-v of a particle as a % of horizontal width   | 0.05
-     
-**Rule 2.2** 
+
+**Rule 2.2**
 
 If a drawing has not received a **control** message, a drawing **MUST** ignore this rule.
 
@@ -99,11 +99,11 @@ Each message **SHOULD** be sent to the appropriate recipient ID.
 
 If a particle crosses on the left, the recipient ID is the ID with the lowest ID that is greater than the drawing's ID.  If a particle crosses on the right, the recipient ID is the ID with the highest ID that is less than the drawing's ID.  If there are no IDs higher than the drawing's ID, the recipient ID is zero.  If there are no IDs lower than the drawing's ID, the recipient ID is the greatest ID.
 
-The list of possible IDs **SHOULD** be calculated from the data received in the `\control` message.  
+The list of possible IDs **SHOULD** be calculated from the data received in the `/control` message.  
 
 *(Send it to ID of the computer next to you.)*
 
-The OSC message **SHOULD** be sent to the `/particle/[RECIPIENT ID]` address at IP 192.168.0.255.  For example, if the recipient ID is 10, the message **SHOULD** be sent to `particle/10` address.
+The OSC message **SHOULD** be sent to the `/particle/[RECIPIENT ID]` address at IP 192.168.0.255.  For example, if the recipient ID is 10, the message **SHOULD** be sent to `/particle/10` address.
 
 This message will consist of the following tags, in order:
 
@@ -118,7 +118,7 @@ float32 (f)  | YACC     | The y delta-v as a % of horizontal width              
 float32 (f)  | FREE1    | Free parameter 1 as a value 0 <= p <=1                  | 0.5
 float32 (f)  | FREE2    | Free parameter 2 as a value 0 <= p <=1                  | 1.0
 
-Each of these values **SHOULD** be taken from the particle that crossed the boundary. 
+Each of these values **SHOULD** be taken from the particle that crossed the boundary.
 IF XVEL or YVEL is greater than MAXV, send MAXV instead for that value.
 If XACC or YACC is greater than MAXA, send MAXA instead for that value.
 
@@ -141,7 +141,7 @@ All drawings **MUST** listen to the `/particle/[DRAWING ID]` address, where `[DR
 
 For each message received, it **SHOULD** create a new particle with initial values contained within the message.  
 
-If the ID of the sending drawing is greater than the ID of the receiving drawing OR 0, the new particle **SHOULD** be placed at the leftmost edge of the screen *(position 0)*.  If the ID of the sending drawing is less than the receiving drawing OR the largest known ID, it **SHOULD** be placed at the rightmost edge of the screen. *(position MAX_WIDTH)*. 
+If the ID of the sending drawing is greater than the ID of the receiving drawing OR 0, the new particle **SHOULD** be placed at the leftmost edge of the screen *(position 0)*.  If the ID of the sending drawing is less than the receiving drawing OR the largest known ID, it **SHOULD** be placed at the rightmost edge of the screen. *(position MAX_WIDTH)*.
 
 *(See Rule 5 for more details on how to implement individual particles.)*
 
@@ -180,7 +180,7 @@ Name   |  Description     | notes
 -------|------------------|---------
  XPOS  | X Position       | Represented by a float where 0.0 indicates the left side of the screen and 1.0 represents the right side of the screen
  YPOS  | Y Position       | Represented by a float where 0.0 indicates the top of the screen and 1.0 represents the bottom of the screen
- XVEL  | X Velocity       | Represented by a float where 1.0 represents the width of the screen 
+ XVEL  | X Velocity       | Represented by a float where 1.0 represents the width of the screen
  YVEL  | Y Velocity       | Represented by a float where 1.0 represents the width of the screen
  XACC  | X Acceleration   | Represented by a float where 1.0 represents the width of the screen
  YACC  | Y Acceleration   | Represented by a float where 1.0 represents the width of the screen
@@ -197,7 +197,7 @@ Drawings may modify these variables for each particle based on their internal lo
 
 Velocity is defined as the change in position during one frame.  XPOS should be modified each frame by adding XVEL to it, and YPOS should be modified by adding YVEL to it.
 
-Acceleration is defined as the change in velocity during one frame.  XVEL should be modified each frame by adding XACC to it, and YVEL should be modified each frame by adding YACC to it. 
+Acceleration is defined as the change in velocity during one frame.  XVEL should be modified each frame by adding XACC to it, and YVEL should be modified each frame by adding YACC to it.
 
 **Rule 5.2**
 
@@ -222,7 +222,7 @@ Particles **SHOULD NOT** have a YPOS of < 0 or > 1.
 
 If a control message is not received within 10 seconds, all drawings **SHOULD** remove ID 0 from their list of known IDs.
 
-*(This **SHOULD** handle ID 0 crashing by routing around it.  If a drawing on either side of ID 0 doesn't implement this rule, ID 0 will become a black hole, and more particles will need to be created.)* 
+*(This **SHOULD** handle ID 0 crashing by routing around it.  If a drawing on either side of ID 0 doesn't implement this rule, ID 0 will become a black hole, and more particles will need to be created.)*
 
 **Rule 6.1**
 
@@ -241,7 +241,7 @@ MAXC, MAXV, MAXA, MINP, and MAXP **MUST** be greater than zero.
 
 **Rule 6.4**
 
-All drawing **MUST** use a framerate of 60fps when calculating acceleration and velocity.  All drawing **SHOULD** attempt to display particles at 60fps.
+All drawing **MUST** use a framerate of 60fps (should this be 30? if i remember, i had trouble hitting 60fps in processing when i was a beginner) when calculating acceleration and velocity.  All drawing **SHOULD** attempt to display particles at 60fps.
 
 ## Questions
 
