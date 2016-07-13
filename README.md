@@ -41,7 +41,7 @@ There will be no internet connection available over Ethernet.
 
 ## Rules
 
-#### Rule 1:  Drawing IDs
+### Rule 1:  Drawing IDs
 
 **Rule 1.0**
 
@@ -57,7 +57,7 @@ The computers **MUST** be numbered with ascending values.  For each monitor, the
 
 *(These rules should create a ring of computers with ascending IDs in a clockwise direction, rolling over at zero.  There is no requirement that the numbers are directly adjacent to each other.)*
 
-#### Rule 2:  OSC Message Sending
+### Rule 2:  OSC Message Sending
 
 **Rule 2.0**
 
@@ -123,7 +123,7 @@ IF XVEL or YVEL is greater than MAXV, send MAXV instead for that value.
 If XACC or YACC is greater than MAXA, send MAXA instead for that value.
 
 
-#### Rule 3:  OSC Message Receiving
+### Rule 3:  OSC Message Receiving
 
 **Rule 3.0**
 
@@ -141,11 +141,11 @@ All drawings **MUST** listen to the `/particle/[DRAWING ID]` address, where `[DR
 
 For each message received, it **SHOULD** create a new particle with initial values contained within the message.  
 
-If the ID of the sending drawing is greater than the ID of the receiving drawing, the new particle **SHOULD** be placed at the leftmost edge of the screen *(position 0)*.  If the ID of the sending drawing is less than the receiving drawing, it **SHOULD** be placed at the rightmost edge of the screen. *(position MAX_WIDTH)*.  
+If the ID of the sending drawing is greater than the ID of the receiving drawing OR 0, the new particle **SHOULD** be placed at the leftmost edge of the screen *(position 0)*.  If the ID of the sending drawing is less than the receiving drawing OR the largest known ID, it **SHOULD** be placed at the rightmost edge of the screen. *(position MAX_WIDTH)*. 
 
 *(See Rule 5 for more details on how to implement individual particles.)*
 
-#### Rule 4:  Aggregate Particles
+### Rule 4:  Aggregate Particles
 
 **Rule 4.0**
 
@@ -168,7 +168,7 @@ Drawings **SHOULD** smoothly interpolate XVEL or YVEL towards MAXV as a particle
 Drawings **SHOULD** smoothly interpolate XACC or YACC towards MAXA as a particle approaches a horizontal edge if XACC or YACC exceeds MAXA.  
 
 
-#### Rule 5: Individual Particles
+### Rule 5: Individual Particles
 
 **Rule 5.0**
 
@@ -216,7 +216,7 @@ Particles that have a XPOS of < 0 or > 1 are considered to have crossed a bounda
 Particles **SHOULD** NOT have a YPOS of < 0 or > 1.  
 
 
-#### Rule 6:  Miscellaneous Rules
+### Rule 6:  Miscellaneous Rules
 
 **Rule 6.0**
 
