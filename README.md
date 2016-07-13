@@ -191,6 +191,7 @@ Name   |  Description     | notes
 
 Particles **MAY** have any number of other parameters, but those parameters will not be transmitted to neighboring drawings.
 
+Drawings may modify these variables for each particle based on their internal logic.
 
 **Rule 5.1**
 
