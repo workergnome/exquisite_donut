@@ -195,9 +195,9 @@ Drawings may modify these variables for each particle based on their internal lo
 
 **Rule 5.1**
 
-Velocity is defined as the change in position during one frame.
+Velocity is defined as the change in position during one frame.  XPOS should be modified each frame by adding XVEL to it, and YPOS should be modified by adding YVEL to it.
 
-Acceleration is defined as the change in velocity during one frame. 
+Acceleration is defined as the change in velocity during one frame.  XVEL should be modified each frame by adding XACC to it, and YVEL should be modified each frame by adding YACC to it. 
 
 **Rule 5.2**
 
@@ -213,7 +213,7 @@ Particles that have a XPOS of < 0 or > 1 are considered to have crossed a bounda
 
 **Rule 5.5**
 
-Particles **SHOULD** NOT have a YPOS of < 0 or > 1.  
+Particles **SHOULD NOT** have a YPOS of < 0 or > 1.  
 
 
 ### Rule 6:  Miscellaneous Rules
