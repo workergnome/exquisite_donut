@@ -39,7 +39,7 @@ Each computer will listen for and send OSC messages on port 9000.
 
 There will be no internet connection available over Ethernet.
 
-### Rules
+## Rules
 
 #### Rule 1:  Drawing IDs
 
@@ -55,7 +55,7 @@ There **MUST** be a computer with an id of zero.
 
 The computers **MUST** be numbered with ascending values.  For each monitor, the drawing on the monitor to its left **MUST** have id that is either a larger number or zero, and the  drawing on the monitor to its right **MUST** be a smaller number.  The only exception is computer zero, which **MUST** have a monitor with a higher ID number to its right.
 
-*(These rules **SHOULD** create a ring of computers with ascending IDs in a clockwise direction, rolling over at zero.  There is no requirement that the numbers are directly adjacent to each other.)*
+*(These rules should create a ring of computers with ascending IDs in a clockwise direction, rolling over at zero.  There is no requirement that the numbers are directly adjacent to each other.)*
 
 #### Rule 2:  OSC Message Sending
 
@@ -241,8 +241,6 @@ MAXC, MAXV, MAXA, MINP, and MAXP **MUST** be greater than zero.
 **Rule 6.4**
 
 All drawing **MUST** use a framerate of 60fps when calculating acceleration and velocity.  All drawing **SHOULD** attempt to display particles at 60fps.
-
----
 
 ## Questions
 
