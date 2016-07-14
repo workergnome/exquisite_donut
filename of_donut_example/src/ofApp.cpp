@@ -2,7 +2,7 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-  //ofSetLogLevel(OF_LOG_VERBOSE);
+  ofSetLogLevel(OF_LOG_VERBOSE);
   ofBackground(216,24,96);
 };
 

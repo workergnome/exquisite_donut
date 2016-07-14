@@ -27,9 +27,7 @@ Sprinkle::Sprinkle(const ofxOscMessage &m, int id, int rightId) {
 
   // Handle starting on the right
   int senderId = m.getArgAsInt32(0);
-  if ((senderId == id && xVel < 0 ) || (senderId != id && senderId == rightId)) {
-    x = 1.0;
-  }
+  if (xVel < 0 ) { x = 1.0;}
 }
 
 //--------------------------------------------------------------
