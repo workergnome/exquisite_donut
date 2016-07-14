@@ -5,6 +5,20 @@
 
 class Particle{
   public:
+ 
+    // Constructors
+    Particle(const ofxOscMessage &m, int id, int rightId);
+    Particle(float maxVel, float maxAcc);
+    
+    // Standard OF functions
+    void draw();
+    void update(float maxVel, float maxAcc);
+    
+    // Custom functions
+    ofxOscMessage createOSCMessage(int id, int leftId, int rightId);
+    bool isOffScreen();
+  
+  protected:
     float x;
     float y;
     float xVel;
@@ -13,10 +27,4 @@ class Particle{
     float yAcc;
     float free1;
     float free2;
-
-    void draw();
-    void update(float maxVel, float maxAcc);
-    void generate(float maxVel, float maxAcc);
-    ofxOscMessage createOSCMessage(int id);
-    bool isOffScreen();
 };

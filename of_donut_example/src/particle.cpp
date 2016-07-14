@@ -1,6 +1,38 @@
 #include "particle.h"
 
 //--------------------------------------------------------------
+// Generate the particle with random parameters
+Particle::Particle(float maxVel, float maxAcc) {
+  x = ofRandomuf();
+  y = ofRandomuf();
+  xVel = ofRandomf() * maxVel;
+  yVel = ofRandomf() * maxVel;
+  xAcc = ofRandomf() * maxAcc;
+  yAcc = ofRandomf() * maxAcc;
+  free1 = ofRandomuf();
+  free2 = ofRandomuf();
+}
+
+//--------------------------------------------------------------
+// Generate the particle from an OSC message
+Particle::Particle(const ofxOscMessage &m, int id, int rightId) {
+  x = 0;
+  y = m.getArgAsFloat(1);
+  xVel = m.getArgAsFloat(2);
+  yVel = m.getArgAsFloat(3);
+  xAcc = m.getArgAsFloat(4);
+  yAcc = m.getArgAsFloat(5);
+  free1 = m.getArgAsFloat(6);
+  free2 = m.getArgAsFloat(7);
+
+  // Handle starting on the right
+  int senderId = m.getArgAsInt32(0);
+  if ((senderId == id && xVel < 0 ) || (senderId != id && senderId == rightId)) {
+    x = 1.0;
+  }
+}
+
+//--------------------------------------------------------------
 void Particle::update(float maxVel, float maxAcc) {
   
   // bounce off top and bottom
@@ -29,24 +61,12 @@ void Particle::draw() {
 }
 
 //--------------------------------------------------------------
-void Particle::generate(float maxVel, float maxAcc) {
-  x = ofRandomuf();
-  y = ofRandomuf();
-  xVel = ofRandomf() * maxVel;
-  yVel = ofRandomf() * maxVel;
-  xAcc = ofRandomf() * maxAcc;
-  yAcc = ofRandomf() * maxAcc;
-  free1 = ofRandomuf();
-  free2 = ofRandomuf();
-}
-
-//--------------------------------------------------------------
 bool Particle::isOffScreen() {
   return x > 1 || x < 0;
 }
 
 //--------------------------------------------------------------
-ofxOscMessage Particle::createOSCMessage(int id) {
+ofxOscMessage Particle::createOSCMessage(int id,int leftId, int rightId) {
 
   ofxOscMessage m;
   m.addIntArg(id);
@@ -57,5 +77,7 @@ ofxOscMessage Particle::createOSCMessage(int id) {
   m.addFloatArg(yAcc);
   m.addFloatArg(free1);
   m.addFloatArg(free2);
+  string address = "/particle/" + ofToString( (x < 0) ? leftId : rightId);
+  m.setAddress(address);
   return m;
 }

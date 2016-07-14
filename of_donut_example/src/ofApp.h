@@ -42,14 +42,14 @@ class ofApp : public ofBaseApp{
 
 		// Particle functions
 		std::vector<Particle> particles;  // The vector of particles
-		void generateParticles();
+		int createdParticles;             // The # of particles createed during this second
+		void createParticles();
 		void removeParticles();
 
 		// Data Variables
 	  int id;   												// The ID of this drawing
 	  std::map<int, uint64_t> knownIds; // The IDs known to the system (if ID 0)
 		uint64_t lastSecond;							// The last known second (for status pings)
-		int generatedParticles;           // The # of particles generated this second
 		
 		// Received Control Variables
 		int leftId;						 // The id to the left of the screen

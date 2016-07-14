@@ -2,11 +2,8 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-
-  // Set up OSC receivers
   sender.setup(HOST, PORT);
   receiver.setup(PORT);
-
 }
 
 //--------------------------------------------------------------
@@ -20,7 +17,7 @@ void ofApp::update(){
       removeExpiredIds();
     }
     lastSecond = currentSecond();
-    generatedParticles = 0;
+    createdParticles = 0;
   }
 
   checkForMessages();
@@ -29,7 +26,7 @@ void ofApp::update(){
   for (auto& p : particles) {
     p.update(maxVelocity,maxAcceleration);
   }
-  generateParticles();
+  createParticles();
   removeParticles();
 }
 
@@ -109,36 +106,8 @@ void ofApp::handleStatusMessage(const ofxOscMessage &m) {
 
 //--------------------------------------------------------------
 void ofApp::handleParticleMessage(const ofxOscMessage &m) {
-  int senderId = m.getArgAsInt32(0);
 
-  Particle p;
-
-  p.y = m.getArgAsFloat(1);
-  p.xVel = m.getArgAsFloat(2);
-  p.yVel = m.getArgAsFloat(3);
-  p.xAcc = m.getArgAsFloat(4);
-  p.yAcc = m.getArgAsFloat(5);
-  p.free1 = m.getArgAsFloat(6);
-  p.free2 = m.getArgAsFloat(7);
-
-  // Figure out which side to put it on
-  if (senderId == id && p.xVel > 0 ) {
-    p.x = 0.0;
-  }
-  else if (senderId == id && p.xVel < 0 ) {
-    p.x = 1.0;
-  }
-  else if (senderId == leftId ) {
-    p.x = 0.0;
-  }
-  else if (senderId == rightId) {
-    p.x = 1.0;
-  }
-  else {
-    ofLog(OF_LOG_ERROR) << "Don't know what to do with a particle from " << senderId << "!";
-    return;
-  }
-
+  Particle p(m, id, rightId);
   particles.push_back(p);
 }
 
@@ -180,36 +149,29 @@ void ofApp::handleControlMessage(const ofxOscMessage &m) {
 }
 
 
-void ofApp::generateParticles() {
-  if (generatedParticles >= maxNewParticles) {return;}
-  if (particles.size() >= maxParticles) {return;}
+void ofApp::createParticles() {
+  if (createdParticles >= maxNewParticles) {return;}
+  if (particles.size() >= maxParticles)    {return;}
 
-  Particle p;
-  p.generate(maxVelocity, maxAcceleration);
+  Particle p(maxVelocity, maxAcceleration);
   particles.push_back(p);
-  generatedParticles++;
-
+  createdParticles++;
 }
 
-bool particleIsOffScreen(Particle p) { return p.isOffScreen();};
 
 void ofApp::removeParticles() {
+
+  // Loop through and broadcast offscreen particles
   for (auto& p : particles) {
     if (p.isOffScreen()){
-      ofxOscMessage m = p.createOSCMessage(id);
-      if (p.x < 0) {
-        m.setAddress("/particle/" + ofToString(leftId));
-      }
-      else {
-        m.setAddress("/particle/" + ofToString(rightId));  
-      }
+      ofxOscMessage m = p.createOSCMessage(id,leftId,rightId);
       sender.sendMessage(m, false);
-
     }
   }
- 
+  
+  // Loop through and remove offscreen particles 
   particles.erase(
-    remove_if(particles.begin(), particles.end(), particleIsOffScreen),
+    remove_if(particles.begin(), particles.end(), [](Particle p) { return p.isOffScreen();}),
   particles.end());
 }
 
