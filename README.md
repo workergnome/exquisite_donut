@@ -53,7 +53,7 @@ There **MUST** be a computer with an id of zero.
 
 **Rule 1.2**
 
-The computers **MUST** be numbered with ascending values.  For each monitor, the drawing on the monitor to its left **MUST** have id that is either a larger number or zero, and the  drawing on the monitor to its right **MUST** be a smaller number.  The only exception is computer zero, which **MUST** have a monitor with a higher ID number to its right.
+The computers **MUST** be numbered with ascending values.  For each monitor, the drawing on the monitor to its left **MUST** have id that is either a larger number or zero, and the  drawing on the monitor to its right **MUST** be a smaller number.  The only exception is computer zero, which **MUST** have a monitor with a higher or equal ID number to its right.
 
 *(These rules should create a ring of computers with ascending IDs in a clockwise direction, rolling over at zero.  There is no requirement that the numbers are directly adjacent to each other.)*
 
