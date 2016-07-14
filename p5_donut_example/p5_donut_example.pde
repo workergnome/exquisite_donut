@@ -2,10 +2,9 @@ import netP5.*;
 import oscP5.*;
 
 OscP5 osc;
-String myID = "1";
+int myID = 1;
 
 ArrayList<Particle> particles = new ArrayList<Particle>();
-ArrayList<Integer> idList = new ArrayList<Integer>();
 
 //constants
 //arraylist IDs
@@ -15,6 +14,8 @@ int MAXC = 100;
 float MAXV = 0.1;
 float MAXA = 0.1;
 
+int LEFTID = 0;
+int RIGHTID = 0;
 
 
 NetAddressList myNetAddressList = new NetAddressList();
@@ -36,12 +37,18 @@ void draw(){
     p.display();
   }
   
-  
-  
+  for(int i = 0; i < particles.size(); i++) {
+    if(particles.get(i).pos.x < 0) {
+      
+    }
+  }
 }
 
 
+//OSC message handlers
 void oscEvent(OscMessage theOscMessage) {
+  
+  //handle a new particle
   if(theOscMessage.addrPattern().equals(particlePattern)) {
     //create new particle, pulling from params of message
   
@@ -69,12 +76,43 @@ void oscEvent(OscMessage theOscMessage) {
     
     Particle p = new Particle(pos, vel, acc);
     particles.add(p);
+  }
     
- 
-  
+  //handle a control message
   if(theOscMessage.addrPattern().equals("/control")){
     //update constants
+    byte[] blob = theOscMessage.get(0).blobValue();
+    MAXP = theOscMessage.get(1).intValue();
+    MINP = theOscMessage.get(2).intValue();
+    MAXC = theOscMessage.get(3).intValue();
+    MAXV = map(theOscMessage.get(4).floatValue(), 0, 1, 0, width);
+    MAXA = map(theOscMessage.get(5).floatValue(), 0, 1, 0, width); 
     
+    int val;
+    int maxId = 0;
+    LEFTID = 256;
+    RIGHTID -1;
+    for(int i = 0; i < blob.size(); i++) {
+      
+      val = (int)blob[i];
+      if(val > myID && val < LEFTID) {
+        LEFTID = val;
+      }
+      if(val < myID && val > RIGHTID) {
+        RIGHTID = val;
+      }
+      if (val > maxId) {
+        maxId = val;
+      }
+    }
+    
+    if(LEFTID == 256) {
+      LEFTID = 0;
+    }
+    if(RIGHTID == -1) {
+      RIGHTID = maxId;
+    }
+
   }
   
 }
