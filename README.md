@@ -111,7 +111,6 @@ This message will consist of the following tags, in order:
 
 Tag Type     | Name     | Description                                             | Example
 ------------:|----------|---------------------------------------------------------|:--------
-int32 (i)    | SEND_ID  | The ID of the sending drawing                           | 9
 float32 (f)  | YPOS     | The y position as a % of vertical height                | 0.614
 float32 (f)  | XVEL     | The x velocity as a % of horizontal width               | 0.014
 float32 (f)  | YVEL     | The y velocity as a % of horizontal width               | 0.05

@@ -7,7 +7,7 @@ class Sprinkle{
   public:
  
     // Constructors
-    Sprinkle(const ofxOscMessage &m, int id, int rightId);
+    Sprinkle(const ofxOscMessage &m);
     Sprinkle(float maxVel, float maxAcc);
     
     // Standard OF functions
@@ -15,7 +15,7 @@ class Sprinkle{
     void update(float maxVel, float maxAcc);
     
     // Custom functions
-    ofxOscMessage createOSCMessage(int id, int leftId, int rightId) const;
+    ofxOscMessage createOSCMessage(int leftId, int rightId) const;
     bool isOffScreen();
   
   protected:
