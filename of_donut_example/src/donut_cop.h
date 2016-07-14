@@ -13,12 +13,14 @@
 #define MAXA 0.001
 
 class DonutCop {
-    // OSC functionality
-    
-    public:
-      DonutCop();
-      void update(int size);
 
+    public:
+      
+      // Constructor
+      DonutCop();
+
+      // Useful Functions
+      void update(int size);
       void broadcastSprinkle(const Sprinkle &p);
       void mentionNewSprinkle();
       bool allowedToCreateSprinkle(int sprinkleCount);
