@@ -22,7 +22,7 @@ void DonutCop::update(int size) {
 
 //--------------------------------------------------------------
 void DonutCop::broadcastSprinkle(const Sprinkle &p) {
-  ofxOscMessage m = p.createOSCMessage(id,leftId,rightId);
+  ofxOscMessage m = p.createOSCMessage(leftId,rightId);
   sender.sendMessage(m, false);
 }
 
@@ -142,8 +142,8 @@ void DonutCop::handleStatusMessage(const ofxOscMessage &m) {
 
 //--------------------------------------------------------------
 void DonutCop::handleSprinkleMessage(const ofxOscMessage &m) {
-  Sprinkle p(m, id, rightId);
-  sprinkles.push_back(p);
+  Sprinkle newSprinkle(m);
+  sprinkles.push_back(newSprinkle);
 }
 
 //--------------------------------------------------------------

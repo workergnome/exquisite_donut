@@ -15,18 +15,17 @@ Sprinkle::Sprinkle(float maxVel, float maxAcc) {
 
 //--------------------------------------------------------------
 // Generate the sprinkle from an OSC message
-Sprinkle::Sprinkle(const ofxOscMessage &m, int id, int rightId) {
+Sprinkle::Sprinkle(const ofxOscMessage &m) {
   x = 0;
-  y = m.getArgAsFloat(1);
-  xVel = m.getArgAsFloat(2);
-  yVel = m.getArgAsFloat(3);
-  xAcc = m.getArgAsFloat(4);
-  yAcc = m.getArgAsFloat(5);
-  free1 = m.getArgAsFloat(6);
-  free2 = m.getArgAsFloat(7);
+  y = m.getArgAsFloat(0);
+  xVel = m.getArgAsFloat(1);
+  yVel = m.getArgAsFloat(2);
+  xAcc = m.getArgAsFloat(3);
+  yAcc = m.getArgAsFloat(4);
+  free1 = m.getArgAsFloat(5);
+  free2 = m.getArgAsFloat(6);
 
   // Handle starting on the right
-  int senderId = m.getArgAsInt32(0);
   if (xVel < 0 ) { x = 1.0;}
 }
 
@@ -64,10 +63,9 @@ bool Sprinkle::isOffScreen() {
 }
 
 //--------------------------------------------------------------
-ofxOscMessage Sprinkle::createOSCMessage(int id,int leftId, int rightId) const {
+ofxOscMessage Sprinkle::createOSCMessage(int leftId, int rightId) const {
 
   ofxOscMessage m;
-  m.addIntArg(id);
   m.addFloatArg(y);
   m.addFloatArg(xVel);
   m.addFloatArg(yVel);

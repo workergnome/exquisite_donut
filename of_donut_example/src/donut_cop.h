@@ -3,7 +3,7 @@
 #include "ofxOsc.h"
 #include "sprinkle.h"
 
-#define HOST "192.168.1.255"
+#define HOST "192.168.0.255"
 #define PORT 9000
 #define ID_EXPIRATION_IN_SECONDS 10
 #define MAXP 200
