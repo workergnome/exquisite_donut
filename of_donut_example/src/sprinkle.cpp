@@ -1,8 +1,8 @@
-#include "particle.h"
+#include "sprinkle.h"
 
 //--------------------------------------------------------------
-// Generate the particle with random parameters
-Particle::Particle(float maxVel, float maxAcc) {
+// Generate the sprinkle with random parameters
+Sprinkle::Sprinkle(float maxVel, float maxAcc) {
   x = ofRandomuf();
   y = ofRandomuf();
   xVel = ofRandomf() * maxVel;
@@ -14,8 +14,8 @@ Particle::Particle(float maxVel, float maxAcc) {
 }
 
 //--------------------------------------------------------------
-// Generate the particle from an OSC message
-Particle::Particle(const ofxOscMessage &m, int id, int rightId) {
+// Generate the sprinkle from an OSC message
+Sprinkle::Sprinkle(const ofxOscMessage &m, int id, int rightId) {
   x = 0;
   y = m.getArgAsFloat(1);
   xVel = m.getArgAsFloat(2);
@@ -33,7 +33,7 @@ Particle::Particle(const ofxOscMessage &m, int id, int rightId) {
 }
 
 //--------------------------------------------------------------
-void Particle::update(float maxVel, float maxAcc) {
+void Sprinkle::update(float maxVel, float maxAcc) {
   
   // bounce off top and bottom
   if (y >= 1.0 || y <= 0.0) {
@@ -52,7 +52,7 @@ void Particle::update(float maxVel, float maxAcc) {
 }
 
 //--------------------------------------------------------------
-void Particle::draw() {
+void Sprinkle::draw() {
   ofFill();
   ofSetColor(ofMap(free1,0.0,1.0,0,255));
   float xPos = ofMap(x,0.0, 1.0, 0, ofGetWidth());
@@ -61,12 +61,12 @@ void Particle::draw() {
 }
 
 //--------------------------------------------------------------
-bool Particle::isOffScreen() {
+bool Sprinkle::isOffScreen() {
   return x > 1 || x < 0;
 }
 
 //--------------------------------------------------------------
-ofxOscMessage Particle::createOSCMessage(int id,int leftId, int rightId) {
+ofxOscMessage Sprinkle::createOSCMessage(int id,int leftId, int rightId) const {
 
   ofxOscMessage m;
   m.addIntArg(id);
@@ -77,7 +77,7 @@ ofxOscMessage Particle::createOSCMessage(int id,int leftId, int rightId) {
   m.addFloatArg(yAcc);
   m.addFloatArg(free1);
   m.addFloatArg(free2);
-  string address = "/particle/" + ofToString( (x < 0) ? leftId : rightId);
+  string address = "/sprinkle/" + ofToString( (x < 0) ? leftId : rightId);
   m.setAddress(address);
   return m;
 }

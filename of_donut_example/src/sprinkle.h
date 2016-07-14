@@ -3,19 +3,19 @@
 #include "ofxOsc.h"
 
 
-class Particle{
+class Sprinkle{
   public:
  
     // Constructors
-    Particle(const ofxOscMessage &m, int id, int rightId);
-    Particle(float maxVel, float maxAcc);
+    Sprinkle(const ofxOscMessage &m, int id, int rightId);
+    Sprinkle(float maxVel, float maxAcc);
     
     // Standard OF functions
     void draw();
     void update(float maxVel, float maxAcc);
     
     // Custom functions
-    ofxOscMessage createOSCMessage(int id, int leftId, int rightId);
+    ofxOscMessage createOSCMessage(int id, int leftId, int rightId) const;
     bool isOffScreen();
   
   protected:
