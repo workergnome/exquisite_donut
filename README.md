@@ -143,7 +143,7 @@ All drawings **MUST** listen to the `/particle/[DRAWING ID]` address, where `[DR
 
 For each message received, it **SHOULD** create a new particle with initial values contained within the message.  
 
-If the ID of the sending drawing is greater than the ID of the receiving drawing OR 0, the new particle **SHOULD** be placed at the leftmost edge of the screen *(position 0)*.  If the ID of the sending drawing is less than the receiving drawing OR the largest known ID, it **SHOULD** be placed at the rightmost edge of the screen. *(position MAX_WIDTH)*.
+If the XVEL is greater than 0, the new particle **SHOULD** be placed at the leftmost edge of the screen *(position 0)*.  If the XVEL is less than 0, it **SHOULD** be placed at the rightmost edge of the screen. *(position MAX_WIDTH)*.
 
 *(See Rule 5 for more details on how to implement individual particles.)*
 
