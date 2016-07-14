@@ -22,7 +22,11 @@ void DonutCop::update(int size) {
 
 //--------------------------------------------------------------
 void DonutCop::broadcastSprinkle(const Sprinkle &p) {
-  ofxOscMessage m = p.createOSCMessage(leftId,rightId);
+  ofxOscMessage m = p.createOSCMessage();
+
+  string address = "/sprinkle/" + ofToString( (p.getX() < 0) ? leftId : rightId);
+  m.setAddress(address);
+
   sender.sendMessage(m, false);
 }
 

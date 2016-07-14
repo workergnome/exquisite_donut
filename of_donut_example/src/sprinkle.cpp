@@ -52,8 +52,8 @@ void Sprinkle::update(float maxVel, float maxAcc) {
 void Sprinkle::draw() {
   ofFill();
   ofSetColor(ofMap(free1,0.0,1.0,0,255));
-  float xPos = ofMap(x,0.0, 1.0, 0, ofGetWidth());
-  float yPos = ofMap(y,0.0, 1.0, 0, ofGetHeight());
+  float xPos = ofMap(getX(),0.0, 1.0, 0, ofGetWidth());
+  float yPos = ofMap(getY(),0.0, 1.0, 0, ofGetHeight());
   ofDrawCircle(xPos,yPos,ofMap(free2,0.0,1.0,1,10));
 }
 
@@ -63,7 +63,7 @@ bool Sprinkle::isOffScreen() {
 }
 
 //--------------------------------------------------------------
-ofxOscMessage Sprinkle::createOSCMessage(int leftId, int rightId) const {
+ofxOscMessage Sprinkle::createOSCMessage() const {
 
   ofxOscMessage m;
   m.addFloatArg(y);
@@ -73,7 +73,5 @@ ofxOscMessage Sprinkle::createOSCMessage(int leftId, int rightId) const {
   m.addFloatArg(yAcc);
   m.addFloatArg(free1);
   m.addFloatArg(free2);
-  string address = "/sprinkle/" + ofToString( (x < 0) ? leftId : rightId);
-  m.setAddress(address);
   return m;
 }

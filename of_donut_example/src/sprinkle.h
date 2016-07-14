@@ -15,9 +15,12 @@ class Sprinkle{
     void update(float maxVel, float maxAcc);
     
     // Custom functions
-    ofxOscMessage createOSCMessage(int leftId, int rightId) const;
+    ofxOscMessage createOSCMessage() const;
     bool isOffScreen();
-  
+    
+    float getX() const {return x;};
+    float getY() const {return y;};
+
   protected:
     float x;
     float y;

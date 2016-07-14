@@ -37,7 +37,6 @@ void ofApp::keyPressed(int key) { if (key == 32){donutCop.setId(1);}}
 //--------------------------------------------------------------
 void ofApp::createSprinkles() {
   if (donutCop.allowedToCreateSprinkle(sprinkles.size())) {
-
     Sprinkle p(donutCop.maxVelocity(), donutCop.maxAcceleration());
     sprinkles.push_back(p);
     donutCop.mentionNewSprinkle();
@@ -58,5 +57,4 @@ void ofApp::removeSprinkles() {
   sprinkles.erase(
     remove_if(sprinkles.begin(), sprinkles.end(), [](Sprinkle p) { return p.isOffScreen();}),
   sprinkles.end());
-
 }
