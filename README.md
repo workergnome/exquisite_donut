@@ -95,7 +95,7 @@ Each drawing **MUST** broadcast an OSC message whenever a particle crosses its h
 * If a particle's `x` position is < 0, it is considered crossing on the left.
 * If a particle's `x` position is > the horizontal width of the drawing, it is considered crossing on the right.
 
-Each message **SHOULD** be sent to the appropriate recipient ID.
+Each message **MUST** be sent to the appropriate recipient ID.
 
 If a particle crosses on the left, the recipient ID is the ID with the lowest ID that is greater than the drawing's ID. If there are no IDs greater than the drawing's ID, the recipient ID is zero.
 
@@ -105,7 +105,7 @@ The list of possible IDs **SHOULD** be calculated from the data received in the 
 
 *(Send it to ID of the computer next to you.)*
 
-The OSC message **SHOULD** be sent to the `/particle/[RECIPIENT ID]` address at IP 192.168.0.255.  For example, if the recipient ID is 10, the message **SHOULD** be sent to `/particle/10` address.
+The OSC message **MUST** be sent to the `/particle/[RECIPIENT ID]` address at IP 192.168.0.255.  For example, if the recipient ID is 10, the message **MUST** be sent to `/particle/10` address.
 
 This message will consist of the following tags, in order:
 
@@ -121,15 +121,16 @@ float32 (f)  | FREE1    | Free parameter 1 as a value 0 <= p <=1                
 float32 (f)  | FREE2    | Free parameter 2 as a value 0 <= p <=1                  | 1.0
 
 Each of these values **SHOULD** be taken from the particle that crossed the boundary.
-IF XVEL or YVEL is greater than MAXV, send MAXV instead for that value.
-If XACC or YACC is greater than MAXA, send MAXA instead for that value.
+
+IF XVEL or YVEL is greater than MAXV, send MAXV instead for that value.  
+If XACC or YACC is greater than MAXA, send MAXA instead for that value.  
 
 
 ### Rule 3:  OSC Message Receiving
 
 **Rule 3.0**
 
-The drawing with ID 0 **MUST** listen to the `/status` address.  It **MUST** maintain a timestamped list of all IDs received for rebroadcast over the `/control` address.  It **SHOULD** remove addresses that it hasn't heard from in 10 seconds from that list. It **SHOULD** indicate in some way that a ID has stopped broadcasting.
+The drawing with ID 0 **MUST** listen to the `/status` address.  It **MUST** maintain a timestamped list of all IDs received for rebroadcast over the `/control` address.  It **SHOULD** remove addresses that it hasn't heard from in 10 seconds from that list. It **MAY** indicate in some way that a ID has stopped broadcasting.
 
 It **MAY** choose to modify the MAXP, MINP, & MAXC parameters based on the total count of known particles.
 
