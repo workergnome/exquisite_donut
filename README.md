@@ -97,7 +97,9 @@ Each drawing **MUST** broadcast an OSC message whenever a particle crosses its h
 
 Each message **SHOULD** be sent to the appropriate recipient ID.
 
-If a particle crosses on the left, the recipient ID is the ID with the lowest ID that is greater than the drawing's ID.  If a particle crosses on the right, the recipient ID is the ID with the highest ID that is less than the drawing's ID.  If there are no IDs higher than the drawing's ID, the recipient ID is zero.  If there are no IDs lower than the drawing's ID, the recipient ID is the greatest ID.
+If a particle crosses on the left, the recipient ID is the ID with the lowest ID that is greater than the drawing's ID. If there are no IDs greater than the drawing's ID, the recipient ID is zero.
+
+If a particle crosses on the right, the recipient ID is the ID with the highest ID that is less than the drawing's ID.   If there are no IDs lower than the drawing's ID, the recipient ID is the greatest ID.
 
 The list of possible IDs **SHOULD** be calculated from the data received in the `/control` message.  
 
