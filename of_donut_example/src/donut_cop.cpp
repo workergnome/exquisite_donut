@@ -1,10 +1,12 @@
 #include "donut_cop.h"
 
+//--------------------------------------------------------------
 DonutCop::DonutCop() {
   sender.setup(HOST, PORT);
   receiver.setup(PORT);
 }
 
+//--------------------------------------------------------------
 void DonutCop::update(int size) {
   if (currentSecond() != lastSecond) {
     sendStatusMessage(size);
@@ -16,19 +18,49 @@ void DonutCop::update(int size) {
     createdSprinkles = 0;
   }
   checkForMessages();
-
 }
 
 //--------------------------------------------------------------
-void DonutCop::sendStatusMessage(int size) {
+void DonutCop::broadcastSprinkle(const Sprinkle &p) {
+  ofxOscMessage m = p.createOSCMessage(id,leftId,rightId);
+  sender.sendMessage(m, false);
+}
 
+//--------------------------------------------------------------
+bool DonutCop::allowedToCreateSprinkle(int sprinkleCount) {
+  if (createdSprinkles >= maxNewSprinkles()) {return false;}
+  if (sprinkleCount >= maxSprinkles())       {return false;}
+  return true;
+}
+
+//--------------------------------------------------------------
+void DonutCop::mentionNewSprinkle() {
+  createdSprinkles++; 
+}
+
+//--------------------------------------------------------------
+bool DonutCop::hasNewSprinkles() {
+  return sprinkles.size();
+}
+
+//--------------------------------------------------------------
+Sprinkle DonutCop::getSprinkle() {
+  Sprinkle p = sprinkles.back();
+  sprinkles.pop_back();
+  return p;
+}
+
+/***************************************************************
+*                    PRIVATE FUNCTIONS                         *
+***************************************************************/
+
+void DonutCop::sendStatusMessage(int size) {
   ofxOscMessage m;
   m.setAddress("/status");
   m.addIntArg(id);
   m.addIntArg(size);
   sender.sendMessage(m, false);
 }
-
 
 //--------------------------------------------------------------
 void DonutCop::sendControlMessage() {
@@ -106,14 +138,10 @@ void DonutCop::handleStatusMessage(const ofxOscMessage &m) {
   int sprinkles = m.getArgAsInt32(1);
   knownIds[statusId] = currentSecond();
   ofLogVerbose() << "Received an update from ID " << statusId << ": it has " << sprinkles << " sprinkles.";
-
-
 }
-
 
 //--------------------------------------------------------------
 void DonutCop::handleSprinkleMessage(const ofxOscMessage &m) {
-
   Sprinkle p(m, id, rightId);
   sprinkles.push_back(p);
 }
@@ -153,33 +181,5 @@ void DonutCop::handleControlMessage(const ofxOscMessage &m) {
   }
 
   ofLogVerbose() << "My left ID is " << leftId << " and my right ID is " << rightId << ".";
-}
-
-void DonutCop::broadcastSprinkle(const Sprinkle &p) {
-  ofxOscMessage m = p.createOSCMessage(id,leftId,rightId);
-  sender.sendMessage(m, false);
-}
-void DonutCop::mentionNewSprinkle() {
-  createdSprinkles++; 
-}
-
-bool DonutCop::allowedToCreateSprinkle(int sprinkleCount) {
-  if (createdSprinkles >= maxNewSprinkles()) {return false;}
-  if (sprinkleCount >= maxSprinkles())       {return false;}
-  return true;
-}
-
-void DonutCop::setId(int _id) {
-  id = _id;
-}
-
-bool DonutCop::hasNewSprinkles() {
-  return sprinkles.size();
-}
-
-Sprinkle DonutCop::getSprinkle() {
-  Sprinkle p = sprinkles.back();
-  sprinkles.pop_back();
-  return p;
 }
 

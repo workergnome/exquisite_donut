@@ -18,7 +18,6 @@ class ofApp : public ofBaseApp{
 		void windowResized(int w, int h);
 		void keyPressed(int key);
 
-		
 		DonutCop donutCop;
 
 		// Sprinkle functions

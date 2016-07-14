@@ -2,7 +2,7 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-  ofSetLogLevel(OF_LOG_VERBOSE);
+  //ofSetLogLevel(OF_LOG_VERBOSE);
   ofBackground(216,24,96);
 };
 
@@ -34,6 +34,7 @@ void ofApp::draw(){
 void ofApp::windowResized(int w, int h){}
 void ofApp::keyPressed(int key) { if (key == 32){donutCop.setId(1);}}
 
+//--------------------------------------------------------------
 void ofApp::createSprinkles() {
   if (donutCop.allowedToCreateSprinkle(sprinkles.size())) {
 
@@ -43,6 +44,7 @@ void ofApp::createSprinkles() {
   }
 }
 
+//--------------------------------------------------------------
 void ofApp::removeSprinkles() {
 
   // Loop through and broadcast offscreen sprinkles
@@ -56,5 +58,5 @@ void ofApp::removeSprinkles() {
   sprinkles.erase(
     remove_if(sprinkles.begin(), sprinkles.end(), [](Sprinkle p) { return p.isOffScreen();}),
   sprinkles.end());
-}
 
+}

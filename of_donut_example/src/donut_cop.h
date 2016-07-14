@@ -18,21 +18,26 @@ class DonutCop {
     public:
       DonutCop();
       void update(int size);
+
       void broadcastSprinkle(const Sprinkle &p);
-      bool allowedToCreateSprinkle(int sprinkleCount);
       void mentionNewSprinkle();
-      void setId(int _id);
+      bool allowedToCreateSprinkle(int sprinkleCount);
       bool hasNewSprinkles();
       Sprinkle getSprinkle();
 
+      // Getters
       int maxSprinkles()      const { return _maxSprinkles;    };  
       int minSprinkles()      const { return _minSprinkles;    };  
       int maxNewSprinkles()   const { return _maxNewSprinkles; };  
       float maxVelocity()     const { return _maxVelocity;     };  
       float maxAcceleration() const { return _maxAcceleration; };  
 
+      // Setters
+      void setId(int _id)           { id = _id;                };
+
     protected:
 
+      // Internal Functions
       uint64_t currentSecond();
       void sendStatusMessage(int size);
       void sendControlMessage();
@@ -42,6 +47,7 @@ class DonutCop {
       void handleControlMessage(const ofxOscMessage &m);
       void handleSprinkleMessage(const ofxOscMessage &m);
 
+      // Internal Variables
       ofxOscSender sender;              // The OSC broadcaster
       ofxOscReceiver receiver;          // The OSC reciever
       std::map<int, uint64_t> knownIds; // The IDs known to the system (if ID 0)
@@ -51,7 +57,6 @@ class DonutCop {
       int leftId;                       // The id to the left of the screen
       int rightId;                      // The id to the right of the screen
       std::vector<Sprinkle> sprinkles;  // The vector of new sprinkles
-
 
       // Received Control Variables
       int _maxSprinkles;      // The maximum number of sprinkles allowed on screen
