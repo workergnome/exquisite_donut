@@ -53,7 +53,7 @@ There **MUST** be a computer with an id of zero.
 
 **Rule 1.2**
 
-The computers **MUST** be numbered with ascending values.  For each monitor, the drawing on the monitor to its left **MUST** have id that is either a larger number or zero, and the  drawing on the monitor to its right **MUST** be a smaller number.  The only exception is computer zero, which **MUST** have a monitor with a higher ID number to its right.
+The computers **MUST** be numbered with ascending values.  For each monitor, the drawing on the monitor to its left **MUST** have id that is either a larger number or zero, and the  drawing on the monitor to its right **MUST** be a smaller number.  The only exception is computer zero, which **MUST** have a monitor with a higher or equal ID number to its right.
 
 *(These rules should create a ring of computers with ascending IDs in a clockwise direction, rolling over at zero.  There is no requirement that the numbers are directly adjacent to each other.)*
 
@@ -95,15 +95,17 @@ Each drawing **MUST** broadcast an OSC message whenever a particle crosses its h
 * If a particle's `x` position is < 0, it is considered crossing on the left.
 * If a particle's `x` position is > the horizontal width of the drawing, it is considered crossing on the right.
 
-Each message **SHOULD** be sent to the appropriate recipient ID.
+Each message **MUST** be sent to the appropriate recipient ID.
 
-If a particle crosses on the left, the recipient ID is the ID with the lowest ID that is greater than the drawing's ID.  If a particle crosses on the right, the recipient ID is the ID with the highest ID that is less than the drawing's ID.  If there are no IDs higher than the drawing's ID, the recipient ID is zero.  If there are no IDs lower than the drawing's ID, the recipient ID is the greatest ID.
+If a particle crosses on the left, the recipient ID is the ID with the lowest ID that is greater than the drawing's ID. If there are no IDs greater than the drawing's ID, the recipient ID is zero.
+
+If a particle crosses on the right, the recipient ID is the ID with the highest ID that is less than the drawing's ID.   If there are no IDs lower than the drawing's ID, the recipient ID is the greatest ID.
 
 The list of possible IDs **SHOULD** be calculated from the data received in the `/control` message.  
 
 *(Send it to ID of the computer next to you.)*
 
-The OSC message **SHOULD** be sent to the `/particle/[RECIPIENT ID]` address at IP 192.168.0.255.  For example, if the recipient ID is 10, the message **SHOULD** be sent to `/particle/10` address.
+The OSC message **MUST** be sent to the `/particle/[RECIPIENT ID]` address at IP 192.168.0.255.  For example, if the recipient ID is 10, the message **MUST** be sent to `/particle/10` address.
 
 This message will consist of the following tags, in order:
 
@@ -119,15 +121,16 @@ float32 (f)  | FREE1    | Free parameter 1 as a value 0 <= p <=1                
 float32 (f)  | FREE2    | Free parameter 2 as a value 0 <= p <=1                  | 1.0
 
 Each of these values **SHOULD** be taken from the particle that crossed the boundary.
-IF XVEL or YVEL is greater than MAXV, send MAXV instead for that value.
-If XACC or YACC is greater than MAXA, send MAXA instead for that value.
+
+IF XVEL or YVEL is greater than MAXV, send MAXV instead for that value.  
+If XACC or YACC is greater than MAXA, send MAXA instead for that value.  
 
 
 ### Rule 3:  OSC Message Receiving
 
 **Rule 3.0**
 
-The drawing with ID 0 **MUST** listen to the `/status` address.  It **MUST** maintain a timestamped list of all IDs received for rebroadcast over the `/control` address.  It **SHOULD** remove addresses that it hasn't heard from in 10 seconds from that list. It **SHOULD** indicate in some way that a ID has stopped broadcasting.
+The drawing with ID 0 **MUST** listen to the `/status` address.  It **MUST** maintain a timestamped list of all IDs received for rebroadcast over the `/control` address.  It **SHOULD** remove addresses that it hasn't heard from in 10 seconds from that list. It **MAY** indicate in some way that a ID has stopped broadcasting.
 
 It **MAY** choose to modify the MAXP, MINP, & MAXC parameters based on the total count of known particles.
 
@@ -141,7 +144,7 @@ All drawings **MUST** listen to the `/particle/[DRAWING ID]` address, where `[DR
 
 For each message received, it **SHOULD** create a new particle with initial values contained within the message.  
 
-If the ID of the sending drawing is greater than the ID of the receiving drawing OR 0, the new particle **SHOULD** be placed at the leftmost edge of the screen *(position 0)*.  If the ID of the sending drawing is less than the receiving drawing OR the largest known ID, it **SHOULD** be placed at the rightmost edge of the screen. *(position MAX_WIDTH)*.
+If the XVEL is greater than 0, the new particle **SHOULD** be placed at the leftmost edge of the screen *(position 0)*.  If the XVEL is less than 0, it **SHOULD** be placed at the rightmost edge of the screen. *(position MAX_WIDTH)*.
 
 *(See Rule 5 for more details on how to implement individual particles.)*
 
@@ -241,7 +244,7 @@ MAXC, MAXV, MAXA, MINP, and MAXP **MUST** be greater than zero.
 
 **Rule 6.4**
 
-All drawing **MUST** use a framerate of 60fps (should this be 30? if i remember, i had trouble hitting 60fps in processing when i was a beginner) when calculating acceleration and velocity.  All drawing **SHOULD** attempt to display particles at 60fps.
+All drawing **MUST** use a framerate of 60fps when calculating acceleration and velocity.  All drawing **SHOULD** attempt to display particles at 60fps.
 
 ## Questions
 
