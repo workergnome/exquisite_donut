@@ -1,11 +1,3 @@
-# Spec for the Exquisite Donut
-
-The Pittsburgh New Media Meetup group is developing a collaborative sculpture installation, currently working under the name "The Exquisite Donut".  This is a multi-artist screen-based installation.
-
-### About the Pittsburgh New Media Meetup
-
-The Pittsburgh New Media Meetup is an informal group of professionals, students, and enthusiasts interested in the intersections of technology, the arts, and media.  We meet monthly to share ideas, find collaborators, and work together to improve our work and the state of new media in the Pittsburgh Area.  
-
 ### The Exquisite Donut Concept
 
 The surrealist party game "The Exquisite Corpse" involved drawings made by many artists on a folded piece of paper.  As the paper was passed between artists, each would create a partial drawing and then fold the paper to hide their work, leaving only a few connecting lines visible.  The next artist would interpret the line and continue the drawing in their own style.  
@@ -244,6 +236,9 @@ MAXC, MAXV, MAXA, MINP, and MAXP **MUST** be greater than zero.
 **Rule 6.4**
 
 All drawing **MUST** use a framerate of 60fps when calculating acceleration and velocity.  All drawing **SHOULD** attempt to display particles at 60fps.
+
+
+---
 
 ## Questions
 
