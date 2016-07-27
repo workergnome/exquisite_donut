@@ -22,7 +22,7 @@ The installation consists of a circular array of vertically-aligned monitors.  A
 
 The "drawing" consists of an computer program that renders virtual particles moving across the monitor.  When a particle reaches one of the two bordering edges, the application will send a message to the "drawing" on that side, communicating the velocity, acceleration, and two additional "free" variables of that particle.  The receiving "drawing" will then begin to draw that particle, using the variables passed.  
 
-This **SHOULD** result in a single, coherent drawing made up of thousands of particles traveling around the donut, changing form and appearance but maintaining a consistent identity across all of the drawings.
+This should result in a single, coherent drawing made up of thousands of particles traveling around the donut, changing form and appearance but maintaining a consistent identity across all of the drawings.
 
 
 ### Technical Details
