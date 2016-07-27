@@ -224,13 +224,13 @@ Particles **SHOULD NOT** have a YPOS of < 0 or > 1.
 
 If a control message is not received within 10 seconds, all drawings **SHOULD** remove ID 0 from their list of known IDs.
 
-*(This **SHOULD** handle ID 0 crashing by routing around it.  If a drawing on either side of ID 0 doesn't implement this rule, ID 0 will become a black hole, and more particles will need to be created.)*
+*(This should handle ID 0 crashing by routing around it.  If a drawing on either side of ID 0 doesn't implement this rule, ID 0 will become a black hole, and more particles will need to be created.)*
 
 **Rule 6.1**
 
 The # of particles allowed to be created or destroyed per/sec **MUST** always be greater than zero.
 
-*(This **SHOULD** make sure that the system self-regulates, even if a computer misbehaves)*.
+*(This should make sure that the system self-regulates, even if a computer misbehaves)*.
 
 
 **Rule 6.2**
