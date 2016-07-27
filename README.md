@@ -236,11 +236,3 @@ MAXC, MAXV, MAXA, MINP, and MAXP **MUST** be greater than zero.
 **Rule 6.4**
 
 All drawing **MUST** use a framerate of 60fps when calculating acceleration and velocity.  All drawing **SHOULD** attempt to display particles at 60fps.
-
-
----
-
-## Questions
-
-* Should we have some sort of offset, that allows particles to go offscreen?  
-* Do we need to worry about bezels?
