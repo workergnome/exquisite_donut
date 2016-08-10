@@ -29,7 +29,6 @@ class DonutCop {
 
     // Useful functions
     DonutCop() {
-        _maxSprinkles = 200;
         id = 0;
         OscProperties properties = new OscProperties();
         properties.setListeningPort(PORT);
@@ -37,7 +36,6 @@ class DonutCop {
         osc = new OscP5(this, properties);
         DebugListener t = new DebugListener();
         osc.addListener(t);
-        frameRate(60);
     }
 
     void update(int size) { //FIX THIS
@@ -50,7 +48,6 @@ class DonutCop {
             lastSecond = currentSecond();
             createdSprinkles = 0;
         }
-        //checkForMessages();
     }
 
     void broadcastSprinkle(Sprinkle p) {
@@ -215,11 +212,6 @@ class DonutCop {
     }
     class DebugListener implements OscEventListener {
         public void oscEvent(OscMessage m) {
-            /* print the address pattern and the typetag of the received OscMessage */
-            print("### received an osc message.");
-            print(" addrpattern: "+m.addrPattern());
-            print(" typetag: "+m.typetag());
-            println(" timetag: "+m.timetag());
             if (id == 0 && m.addrPattern() == "/status") {
                 handleStatusMessage(m);
             }
@@ -227,7 +219,6 @@ class DonutCop {
                 handleControlMessage(m);
             }
             if (id == 0 && m.addrPattern().equals("/sprinkle/" + str(id))) {
-                println("received SPRINKLE message");
                 handleSprinkleMessage(m);
             }
         }
