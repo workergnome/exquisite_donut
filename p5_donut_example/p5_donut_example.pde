@@ -9,7 +9,7 @@ int counter = 0;
 
 void setup() {
     // Necessary for exquisite donut to work
-    cop = new DonutCop();
+    cop = new DonutCop(0);
     sprinkles  = new ArrayList<Sprinkle>();
     sprinklesToRemove = new IntList();
     // Other properties
@@ -34,7 +34,7 @@ void draw() {
     background(0);
     // Update and draw sprinkles
     updateSprinkles();
-    if(counter%10 ==0){
+    if(counter%1 ==0){
         produceRandomSprinkle();   
     }
     counter++;

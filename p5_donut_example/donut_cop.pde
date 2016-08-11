@@ -47,7 +47,7 @@ class DonutCop {
     // Internal variables
     private int lastSecond = 0;         // The last known second (for status pings)
     private int createdSprinkles;        // The # of sprinkles created during this second
-    private int id = 0;                      // The ID of this drawing
+    private int id;                      // The ID of this drawing
     private int leftId = 0;                  // The id to the left of the screen
     private int rightId = 0;                 // The id to the right of the screen
     // Received Control Variables
@@ -61,11 +61,12 @@ class DonutCop {
     // Sprinkle buffer
     private ArrayList<Sprinkle> sprinkleBuffer= new ArrayList<Sprinkle>();
     NetAddress controlAddress = new NetAddress("192.168.0.255", PORT);
+    NetAddressList nodeAddresses = new NetAddressList();
 
 
     // Useful functions
-    DonutCop() {
-        id = 0;
+    DonutCop(int _id) {
+        id = _id;
         OscProperties properties = new OscProperties();
         properties.setListeningPort(PORT);
         properties.setRemoteAddress(HOST, PORT);
@@ -81,7 +82,7 @@ class DonutCop {
             sendStatusMessage(size);
             if (id == 0) {
                 sendControlMessage();
-                //removeExpiredIds();
+                removeExpiredIds();
             }
             lastSecond = currentSecond();
             createdSprinkles = 0;
@@ -100,8 +101,9 @@ class DonutCop {
             expiredTime -= ID_EXPIRATION_IN_SECONDS;
         }
         // loop through backwards so we don't get indexing errors
-        for (int i = knownIDs.size(); i>0; i--) {
-            if (knownIDs.get(i).timeStamp > expiredTime) {
+        for (int i = knownIDs.size()-1; i>=0; i--) {
+            if (knownIDs.get(i).timeStamp - expiredTime < 0) {
+                println("Deleting ID" + knownIDs.get(i));
                 knownIDs.remove(i);
             }
         }
@@ -167,7 +169,7 @@ class DonutCop {
         OscMessage m = new OscMessage("/status");
         m.add(id);
         m.add(size);
-        osc.send(m, controlAddress);
+        osc.send(m);//, controlAddress);
     }
     // Function to broadcast a control message
     private void sendControlMessage() {
@@ -191,6 +193,7 @@ class DonutCop {
     }
     // Function to receive status message
     private void handleStatusMessage(OscMessage m) {
+        println("Got status");
         int statusId = m.get(0).intValue();
         int sprinkles = m.get(1).intValue();
         TimeStampedID newID = new TimeStampedID(statusId, currentSecond());
