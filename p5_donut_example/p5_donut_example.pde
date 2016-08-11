@@ -16,7 +16,7 @@ void setup() {
     smooth(2);
     size(640,480,P2D);
     frameRate(60);
-    font = createFont("Arial Bold",48);
+    font = createFont("Courier New",48);
     noStroke();
 }
 
@@ -38,19 +38,19 @@ void draw() {
         produceRandomSprinkle();   
     }
     counter++;
-    textFont(font,36);
+    textFont(font,24);
     fill(255);
-    text(str(int(frameRate))+" " + sprinkles.size(),20,60);
+    text(str(int(frameRate))+" FPS, " + sprinkles.size()+" Sprinkles",20,60);
 }
 
 void drawSprinkle(Sprinkle p) {
-    int size = 50;
-    float xBorder = -.1;
-    float yBorder = .1;
+    int ballSize = 50;
+    float xBorder = -(float)ballSize/width/2;
+    float yBorder = (float)ballSize/height/2;
     float xPos = (1-xBorder*2)*p.pos.x*width+width*(xBorder);
     float yPos = (1-yBorder*2)*p.pos.y*height+height*(yBorder);
     fill(255,p.pos.y*255.0,p.pos.x*255.0);
-    ellipse(xPos,yPos, size, size);
+    ellipse(xPos,yPos, ballSize, ballSize);
 }
 
 void sprinklePhysics(Sprinkle p) {
@@ -62,17 +62,22 @@ void sprinklePhysics(Sprinkle p) {
        p.vel.y = Math.abs(p.vel.y)*-1;
     }
     else{
-     p.acc.y = .0002;   
+        // Positive acceleration because y goes 0-Max top to bottom
+        p.acc.y = .0002;   
     }
 }
 
 void updateSprinkles(){
     // Add new sprinkles
     while(cop.hasNewSprinkles()){
+        // Get next sprinkle
         Sprinkle p = cop.getNextSprinkle();
-        sprinkles.add(p);
+        // Check if we can add it
+        if(cop.allowedToCreateSprinkle(sprinkles.size())){
+            sprinkles.add(p);
+        }
     }
-    
+    // Update sprinkles
     for(int i= 0; i<sprinkles.size(); i++){
         Sprinkle p = sprinkles.get(i);
         // Move sprinkles
@@ -95,9 +100,5 @@ void updateSprinkles(){
         cop.broadcastSprinkle(p);
         sprinkles.remove(p);
         sprinklesToRemove.remove(0);
-    }
-    // Remove overflow sprinkles
-    while(sprinkles.size() > cop.maxSprinkles()){
-         sprinkles.remove(0);
-    }
+    }    
 }

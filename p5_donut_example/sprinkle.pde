@@ -16,10 +16,10 @@ class Sprinkle {
     }
 
     void update(float maxVel, float maxAcc) {
-        pos.add(vel);
-        vel.add(acc);
         vel.limit(maxVel);
         acc.limit(maxAcc);
+        pos.add(vel);
+        vel.add(acc);
     }
 
     OscMessage createOSCMessage() {
