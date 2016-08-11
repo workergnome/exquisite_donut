@@ -68,6 +68,7 @@ void sprinklePhysics(Sprinkle p) {
 }
 
 void updateSprinkles(){
+    cop.update(sprinkles.size());
     // Add new sprinkles
     while(cop.hasNewSprinkles()){
         // Get next sprinkle

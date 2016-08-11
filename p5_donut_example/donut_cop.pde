@@ -4,7 +4,38 @@ import oscP5.*;
 // TODO: 
 // Add automatic ID recognition
 // Update KnownIDs correctly
-// Figure out HOST configuration
+// Figure out HOST 
+
+
+public class TimeStampedID {
+    long timeStamp;
+    int id;
+    TimeStampedID(int _id, long _timeStamp) {
+        timeStamp = _timeStamp;
+        id = _id;
+    }
+    // Hash by ID so there can be no duplicates
+    @Override
+        public int hashCode() {
+        int result = id;
+        return result;
+    }
+    // Compare by ID not by timestamp
+    @Override
+        public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (!TimeStampedID.class.isAssignableFrom(obj.getClass())) {
+            return false;
+        }
+        final TimeStampedID other = (TimeStampedID) obj;
+        if (this.id != other.id) {
+            return false;
+        }
+        return true;
+    }
+}
 
 class DonutCop {
     // Global variables
@@ -14,11 +45,11 @@ class DonutCop {
     OscP5 osc;
 
     // Internal variables
-    private int lastSecond;         // The last known second (for status pings)
+    private int lastSecond = 0;         // The last known second (for status pings)
     private int createdSprinkles;        // The # of sprinkles created during this second
-    private int id;                      // The ID of this drawing
-    private int leftId;                  // The id to the left of the screen
-    private int rightId;                 // The id to the right of the screen
+    private int id = 0;                      // The ID of this drawing
+    private int leftId = 0;                  // The id to the left of the screen
+    private int rightId = 0;                 // The id to the right of the screen
     // Received Control Variables
     private int _maxSprinkles = 200;      // The maximum number of Sprinkles allowed on screen
     private int _minSprinkles = 0;      // The minimum number of Sprinkles allowed on screen
@@ -26,9 +57,11 @@ class DonutCop {
     private float _maxVelocity = 0.02;     // The maximum speed a sprinkle can have
     private float _maxAcceleration = 0.001; // The maximum accelleration for a sprinkle
     // Known ID's
-    private IntList knownIDs = new IntList();
+    private ArrayList<TimeStampedID> knownIDs;
     // Sprinkle buffer
     private ArrayList<Sprinkle> sprinkleBuffer= new ArrayList<Sprinkle>();
+    NetAddress controlAddress = new NetAddress("192.168.0.255", PORT);
+
 
     // Useful functions
     DonutCop() {
@@ -40,6 +73,7 @@ class DonutCop {
         // Custom listener for debugging purposes
         OscListener t = new OscListener();
         osc.addListener(t);
+        knownIDs = new ArrayList<TimeStampedID>();
     }
 
     void update(int size) { //Unfinished
@@ -47,13 +81,16 @@ class DonutCop {
             sendStatusMessage(size);
             if (id == 0) {
                 sendControlMessage();
-                removeExpiredIds();
+                //removeExpiredIds();
             }
             lastSecond = currentSecond();
             createdSprinkles = 0;
         }
     }
-    // Not sure how this function is supposed to work
+    private int currentSecond() {
+        return millis()/1000;
+    }
+    // Function to remove expired IDs
     private void removeExpiredIds() {
 
         int expiredTime = currentSecond();
@@ -62,19 +99,20 @@ class DonutCop {
         } else {
             expiredTime -= ID_EXPIRATION_IN_SECONDS;
         }
-
-        //for (auto iter = knownIds.begin(); iter != knownIds.end();) {
-        //  if (iter->second < expiredTime) knownIds.erase(iter++);
-        //  else ++iter;
-        //}
+        // loop through backwards so we don't get indexing errors
+        for (int i = knownIDs.size(); i>0; i--) {
+            if (knownIDs.get(i).timeStamp > expiredTime) {
+                knownIDs.remove(i);
+            }
+        }
     }
-    
+
     // Unsure why function exists or what createdSprinkles is meant to be
     // keeping track of. Why is it reset in the update function?
     void mentionNewSprinkle() {
         createdSprinkles++;
     }
-    
+
     // Function to check if a sprinkle should be added to the scene
     boolean allowedToCreateSprinkle(int sprinkleCount) {
         if (createdSprinkles >= _maxNewSprinkles) {
@@ -117,10 +155,6 @@ class DonutCop {
     void setId(int _id) { 
         id = _id;
     };
-
-    private int currentSecond() {
-        return millis()/1000;
-    }
     // Function to broadcast new sprinkle message
     void broadcastSprinkle(Sprinkle p) {
         OscMessage m = p.createOSCMessage();
@@ -133,21 +167,20 @@ class DonutCop {
         OscMessage m = new OscMessage("/status");
         m.add(id);
         m.add(size);
-        osc.send(m);
+        osc.send(m, controlAddress);
     }
     // Function to broadcast a control message
     private void sendControlMessage() {
         // If you haven't heard from anyone, don't send anything.
-        if (knownIDs.size() == 0) { 
+        if (knownIDs.size() == 0) {
             return;
         }
         // Generate the byte array for IDs
         byte[] data = new byte[255];
         for (int i=0; i<knownIDs.size(); i++) {
-            data[i] = (byte)knownIDs.get(i);
+            data[i] = (byte)knownIDs.get(i).id;
         }
         OscMessage m = new OscMessage("/control");
-        data  = OscMessage.makeBlob(data);
         m.add(data);
         m.add(_maxSprinkles);
         m.add(_minSprinkles);
@@ -160,8 +193,14 @@ class DonutCop {
     private void handleStatusMessage(OscMessage m) {
         int statusId = m.get(0).intValue();
         int sprinkles = m.get(1).intValue();
-        //knownIds[statusId] = currentSecond();
-        //ofLogVerbose() << "Received an update from ID " << statusId << ": it has " << sprinkles << " sprinkles.";
+        TimeStampedID newID = new TimeStampedID(statusId, currentSecond());
+        int idx = knownIDs.indexOf(newID);
+        if (idx>=0) {
+            knownIDs.set(idx, newID);
+        } else {
+            knownIDs.add(newID);
+        }
+        println("Received an update from ID " + statusId + ": it has " + sprinkles + " sprinkles.");
     }
     // Function to receive control message
     private void handleControlMessage(OscMessage m) {
@@ -215,13 +254,13 @@ class DonutCop {
     // Added a custom listener for debugging purposes
     class OscListener implements OscEventListener {
         public void oscEvent(OscMessage m) {
-            if (id == 0 && m.addrPattern().equals("/status")) {
+            if (m.addrPattern().equals("/status")) {
                 handleStatusMessage(m);
             }
-            if (id == 0 && m.addrPattern().equals("/control")) {
+            if (m.addrPattern().equals("/control")) {
                 handleControlMessage(m);
             }
-            if (id == 0 && m.addrPattern().equals("/sprinkle/" + str(id))) {
+            if (m.addrPattern().equals("/sprinkle/" + str(id))) {
                 handleSprinkleMessage(m);
             }
         }
