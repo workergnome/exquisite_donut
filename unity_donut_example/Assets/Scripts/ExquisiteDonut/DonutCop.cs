@@ -23,8 +23,8 @@ namespace ExquisiteDonut
 		private int lastSecond;         // The last known second (for status pings)
 		private int createdSprinkles;        // The # of sprinkles created during this second
 		private int id = 0;                      // The ID of this drawing
-		private int leftId = 1;                  // The id to the left of the screen
-		private int rightId = 1;                 // The id to the right of the screen
+		private int leftId = 0;                  // The id to the left of the screen
+		private int rightId = 0;                 // The id to the right of the screen
 		// Received Control Variables
 		private int _maxSprinkles = 200;      // The maximum number of Sprinkles allowed on screen
 		private int _minSprinkles = 0;      // The minimum number of Sprinkles allowed on screen
@@ -51,7 +51,7 @@ namespace ExquisiteDonut
 			osc = OSCHandler.Instance; //init OSC
 			osc.Init();
 			osc.CreateServer ("Listener",PORT);
-			osc.CreateClient ("Broadcaster", HOST, PORT+1);
+			osc.CreateClient ("Broadcaster", HOST, PORT);
 			packets = new List<OSCPacket> ();
 		}
 
@@ -79,7 +79,9 @@ namespace ExquisiteDonut
 				}
 				packetCounter++;
 			}
-			lastPacketTimestamp = packets [packets.Count - 1].TimeStamp;
+			if (packetCounter > 1) {
+				lastPacketTimestamp = packets [packets.Count - 1].TimeStamp;
+			}
 
 			if (CurrentSecond() != lastSecond) {
 				SendStatusMessage(size);
@@ -91,6 +93,7 @@ namespace ExquisiteDonut
 				createdSprinkles = 0;
 			}
 		}
+
 		public void BroadcastSprinkle(Sprinkle p) {
 			List<object> m = p.CreateOSCMessage();
 			int id = (p.pos.x < 0) ? leftId : rightId;
@@ -161,7 +164,8 @@ namespace ExquisiteDonut
 			for (int i=0; i<knownIDs.Count; i++) {
 				data[i] = (byte)knownIDs[i].id;
 			}
-
+			// Calculate my own IDs because I won't be listening to /control
+			CalculateIDs (data);
 			List<object> m = new List<object>();
 			m.Add(data);
 			m.Add(_maxSprinkles);
@@ -172,7 +176,6 @@ namespace ExquisiteDonut
 			osc.SendMessageToClient("Broadcaster", "/control",m);
 		}
 		private void RemoveExpiredIds() {
-
 			int expiredTime = CurrentSecond();
 			if (expiredTime <= ID_EXPIRATION_IN_SECONDS) {
 				return;
@@ -186,6 +189,7 @@ namespace ExquisiteDonut
 					knownIDs.RemoveAt(i);
 				}
 			}
+
 		}
 
 		private void HandleStatusMessage(List<object> m) {
@@ -210,7 +214,10 @@ namespace ExquisiteDonut
 			_maxNewSprinkles = (int)dataVec [3];
 			_maxVelocity     = (float)dataVec [4];
 			_maxAcceleration = (float)dataVec [5];
+			CalculateIDs (data);
+		}
 
+		private void CalculateIDs(byte[] data){
 			// Calculate left and right IDs
 			int val;
 			int maxId = 0;
@@ -228,6 +235,7 @@ namespace ExquisiteDonut
 					maxId = val;
 				}
 			}
+
 			if (leftId == 256) {
 				leftId = 0;
 			}

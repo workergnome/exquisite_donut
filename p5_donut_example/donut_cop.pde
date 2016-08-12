@@ -67,6 +67,7 @@ class DonutCop {
     // Useful functions
     DonutCop(int _id) {
         id = _id;
+        // Setup osc
         OscProperties properties = new OscProperties();
         properties.setListeningPort(PORT);
         properties.setRemoteAddress(HOST, PORT);
@@ -77,7 +78,7 @@ class DonutCop {
         knownIDs = new ArrayList<TimeStampedID>();
     }
 
-    void update(int size) { //Unfinished
+    void update(int size) {
         if (currentSecond() != lastSecond) {
             sendStatusMessage(size);
             if (id == 0) {
@@ -182,6 +183,8 @@ class DonutCop {
         for (int i=0; i<knownIDs.size(); i++) {
             data[i] = (byte)knownIDs.get(i).id;
         }
+        // Calculate my own IDs because I won't be listening to /control
+        CalculateIDs(data);
         OscMessage m = new OscMessage("/control");
         m.add(data);
         m.add(_maxSprinkles);
@@ -213,7 +216,11 @@ class DonutCop {
         _maxNewSprinkles = m.get(3).intValue();
         _maxVelocity     = m.get(4).floatValue();
         _maxAcceleration = m.get(5).floatValue();
-        // Calculate left and right IDs
+        CalculateIDs(data);
+    }
+    
+    private void CalculateIDs(byte[] data){
+            // Calculate left and right IDs
         int val;
         int maxId = 0;
         leftId = 256;
@@ -236,8 +243,9 @@ class DonutCop {
         if (rightId == -1) {
             rightId = maxId;
         }
-        print("My left ID is " + str(leftId) + " and my right ID is " + str(rightId) +  ".");
+        println("My left ID is " + str(leftId) + " and my right ID is " + str(rightId) +  ".");
     }
+    
     // Function to receive a new sprinkle message
     private void handleSprinkleMessage(OscMessage m) {
         PVector pos = new PVector();
@@ -257,10 +265,10 @@ class DonutCop {
     // Added a custom listener for debugging purposes
     class OscListener implements OscEventListener {
         public void oscEvent(OscMessage m) {
-            if (m.addrPattern().equals("/status")) {
+            if (id == 0 && m.addrPattern().equals("/status")) {
                 handleStatusMessage(m);
             }
-            if (m.addrPattern().equals("/control")) {
+            if (id != 0 && m.addrPattern().equals("/control")) {
                 handleControlMessage(m);
             }
             if (m.addrPattern().equals("/sprinkle/" + str(id))) {

@@ -35,7 +35,7 @@ void draw() {
     // Update and draw sprinkles
     updateSprinkles();
     if(counter%1 ==0){
-        produceRandomSprinkle();   
+        //produceRandomSprinkle();   
     }
     counter++;
     textFont(font,24);

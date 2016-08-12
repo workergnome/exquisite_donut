@@ -51,7 +51,7 @@ public class UnityDonutExample : MonoBehaviour {
 		UpdateSprinkles ();
 		// Create random sprinkles for testing
 		counter++;
-		if (counter % 1 == 0) {
+		if (counter % 300 == 0) {
 			ProduceRandomSprinkle ();
 		}
 	}
