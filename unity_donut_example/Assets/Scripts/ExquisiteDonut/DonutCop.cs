@@ -66,7 +66,7 @@ namespace ExquisiteDonut
 			while (packetCounter < packets.Count) {
 				OSCPacket packet = packets[packets.Count - packetCounter];
 				long currentTimestamp = packet.TimeStamp;
-				if (currentTimestamp < lastPacketTimestamp) {
+				if (currentTimestamp <= lastPacketTimestamp) {
 					break;
 				}
 				string addr = packet.Address;
