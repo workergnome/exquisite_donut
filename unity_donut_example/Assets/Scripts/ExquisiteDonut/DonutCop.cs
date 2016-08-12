@@ -146,21 +146,21 @@ namespace ExquisiteDonut
 		private int CurrentSecond() {
 			return (int)Time.time;
 		}
+
 		private void SendStatusMessage(int size) {
 			List<object> m = new List<object>();
 			m.Add(id);
 			m.Add(size);
 			osc.SendMessageToClient("Broadcaster","/status",m);
 		}
+
 		private void SendControlMessage() {
 			// If you haven't heard from anyone, don't send anything.
 			if (knownIDs.Count == 0) { 
 				return;
 			}
-
 			// Generate the char array for IDs
 			byte[] data = new byte[255];
-
 			for (int i=0; i<knownIDs.Count; i++) {
 				data[i] = (byte)knownIDs[i].id;
 			}
@@ -175,6 +175,7 @@ namespace ExquisiteDonut
 			m.Add(_maxAcceleration);
 			osc.SendMessageToClient("Broadcaster", "/control",m);
 		}
+
 		private void RemoveExpiredIds() {
 			int expiredTime = CurrentSecond();
 			if (expiredTime <= ID_EXPIRATION_IN_SECONDS) {
@@ -189,7 +190,6 @@ namespace ExquisiteDonut
 					knownIDs.RemoveAt(i);
 				}
 			}
-
 		}
 
 		private void HandleStatusMessage(List<object> m) {
@@ -221,6 +221,7 @@ namespace ExquisiteDonut
 			// Calculate left and right IDs
 			int val;
 			int maxId = 0;
+			int minID = 256;
 			leftId = 256;
 			rightId = -1;
 			for (int i = 0; i < data.Length; ++i) {
@@ -234,15 +235,16 @@ namespace ExquisiteDonut
 				if (val > maxId) {
 					maxId = val;
 				}
+				if (val < minID) {
+					minID = val;
+				}
 			}
-
 			if (leftId == 256) {
-				leftId = 0;
+				leftId = (id == 0) ? minID : 0;
 			}
 			if (rightId == -1) {
 				rightId = maxId;
 			}
-
 			Debug.Log("My left ID is " + leftId.ToString() + " and my right ID is " + rightId.ToString() +  ".");
 		}
 

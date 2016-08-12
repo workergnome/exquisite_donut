@@ -220,8 +220,9 @@ class DonutCop {
     }
     
     private void CalculateIDs(byte[] data){
-            // Calculate left and right IDs
+        // Calculate left and right IDs
         int val;
+        int minID = 256;
         int maxId = 0;
         leftId = 256;
         rightId = -1;
@@ -236,9 +237,12 @@ class DonutCop {
             if (val > maxId) {
                 maxId = val;
             }
+            if (val < minID) {
+                minID = val;
+            }
         }
         if (leftId == 256) {
-            leftId = 0;
+            leftId = (id == 0) ? minID : 0;
         }
         if (rightId == -1) {
             rightId = maxId;
