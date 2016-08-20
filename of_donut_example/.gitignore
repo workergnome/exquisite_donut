@@ -65,7 +65,7 @@ local.properties
 .AppleDouble
 
 # OSX
-.DS_Store
+*/.DS_Store
 *.swp
 *~.nib
 # Thumbnails

@@ -36,9 +36,18 @@ void ofApp::keyPressed(int key) { if (key == 32){donutCop.setId(1);}}
 
 //--------------------------------------------------------------
 void ofApp::createSprinkles() {
+
+  // Check with the donut cop if you're allowed to create a new sprinkle
   if (donutCop.allowedToCreateSprinkle(sprinkles.size())) {
+
+    // Create a new sprinkle
     Sprinkle p(donutCop.maxVelocity(), donutCop.maxAcceleration());
+
+    // Add it to the sprinkles list
     sprinkles.push_back(p);
+
+    // Tell the cop that we created one, so it can keep track
+    // of how many have been created. 
     donutCop.mentionNewSprinkle();
   }
 }
