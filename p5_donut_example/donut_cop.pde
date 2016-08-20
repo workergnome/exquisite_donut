@@ -60,7 +60,7 @@ class DonutCop {
     private ArrayList<TimeStampedID> knownIDs;
     // Sprinkle buffer
     private ArrayList<Sprinkle> sprinkleBuffer= new ArrayList<Sprinkle>();
-    NetAddress controlAddress = new NetAddress("192.168.0.255", PORT);
+    NetAddress controlAddress = new NetAddress("192.168.1.255", PORT);
     NetAddressList nodeAddresses = new NetAddressList();
 
 
@@ -163,14 +163,14 @@ class DonutCop {
         OscMessage m = p.createOSCMessage();
         String address = "/sprinkle/" + str((p.pos.x < 0) ? leftId : rightId);
         m.setAddrPattern(address);
-        osc.send(m);
+        osc.send(m,controlAddress);
     }
     // Function to broadcast a status message
     private void sendStatusMessage(int size) {
         OscMessage m = new OscMessage("/status");
         m.add(id);
         m.add(size);
-        osc.send(m);//, controlAddress);
+        osc.send(m, controlAddress);
     }
     // Function to broadcast a control message
     private void sendControlMessage() {
@@ -192,7 +192,7 @@ class DonutCop {
         m.add(_maxNewSprinkles);
         m.add(_maxVelocity);
         m.add(_maxAcceleration);
-        osc.send(m);
+        osc.send(m, controlAddress);
     }
     // Function to receive status message
     private void handleStatusMessage(OscMessage m) {
@@ -216,6 +216,7 @@ class DonutCop {
         _maxNewSprinkles = m.get(3).intValue();
         _maxVelocity     = m.get(4).floatValue();
         _maxAcceleration = m.get(5).floatValue();
+        println("max_sprinkles " + _maxSprinkles + " min_sprinkles " + _minSprinkles);
         CalculateIDs(data);
     }
     
@@ -255,14 +256,16 @@ class DonutCop {
         PVector pos = new PVector();
         PVector vel = new PVector();
         PVector acc = new PVector();
-        pos.x = 0;
+        //pos.x = 0
         pos.y = m.get(0).floatValue();
         vel.x = m.get(1).floatValue();
         vel.y = m.get(2).floatValue();
         acc.x = m.get(3).floatValue();
         acc.y = m.get(4).floatValue();
-        float free1 = m.get(5).floatValue();
-        float free2 = m.get(6).floatValue();
+        if(vel.x > 0) pos.x = 0;
+        else pos.x = 1;
+        float free1 =1; // m.get(5).floatValue();
+        float free2 = 1; //m.get(6).floatValue();
         Sprinkle p = new Sprinkle(pos, vel, acc, free1, free2);
         sprinkleBuffer.add(p);
     }

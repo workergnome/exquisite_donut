@@ -9,12 +9,13 @@ int counter = 0;
 
 void setup() {
     // Necessary for exquisite donut to work
-    cop = new DonutCop(0);
+    cop = new DonutCop(1);
     sprinkles  = new ArrayList<Sprinkle>();
     sprinklesToRemove = new IntList();
     // Other properties
     smooth(2);
-    size(640,480,P2D);
+    //size(640,480,P2D);
+    fullScreen();
     frameRate(60);
     font = createFont("Courier New",48);
     noStroke();
@@ -63,7 +64,7 @@ void sprinklePhysics(Sprinkle p) {
     }
     else{
         // Positive acceleration because y goes 0-Max top to bottom
-        p.acc.y = .0002;   
+        //p.acc.y = .0002;   
     }
 }
 
