@@ -44,8 +44,8 @@ void Sprinkle::update(float maxVel, float maxAcc) {
   xVel += yAcc;
   xVel = ofClamp(xVel,-maxVel, maxVel);
   yVel = ofClamp(yVel, -maxVel, maxVel);
-  xAcc = maxAcc*ofRandomf();
-  yAcc = maxAcc*ofRandomf();
+  //xAcc = maxAcc*ofRandomf();
+  //yAcc = maxAcc*ofRandomf();
 }
 
 //--------------------------------------------------------------
