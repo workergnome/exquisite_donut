@@ -103,7 +103,7 @@ This message will consist of the following tags, in order:
 
 Tag Type     | Name     | Description                                             | Example
 ------------:|----------|---------------------------------------------------------|:--------
-float32 (f)  | YPOS     | The y position as a % of vertical height                | 0.614
+float32 (f)  | YPOS     | The y position as a % of horizontal height              | 0.614
 float32 (f)  | XVEL     | The x velocity as a % of horizontal width               | 0.014
 float32 (f)  | YVEL     | The y velocity as a % of horizontal width               | 0.05
 float32 (f)  | XACC     | The x delta-v as a % of horizontal width                | 0.05
@@ -173,7 +173,7 @@ Each particle **MUST** have the following parameters:
 Name   |  Description     | notes
 -------|------------------|---------
  XPOS  | X Position       | Represented by a float where 0.0 indicates the left side of the screen and 1.0 represents the right side of the screen
- YPOS  | Y Position       | Represented by a float where 0.0 indicates the top of the screen and 1.0 represents the bottom of the screen
+ YPOS  | Y Position       | Represented by a float where 0.0 indicates the top of the screen, and the bottom is the width times the aspect ratio of the screen.  (For example, for 1080x1920 screen, this would be 1.877)
  XVEL  | X Velocity       | Represented by a float where 1.0 represents the width of the screen
  YVEL  | Y Velocity       | Represented by a float where 1.0 represents the width of the screen
  XACC  | X Acceleration   | Represented by a float where 1.0 represents the width of the screen
@@ -207,7 +207,7 @@ Particles that have a XPOS of < 0 or > 1 are considered to have crossed a bounda
 
 **Rule 5.5**
 
-Particles **SHOULD NOT** have a YPOS of < 0 or > 1.  
+Particles **SHOULD NOT** have a YPOS of < 0 or > width times the aspect ratio of the screen.  
 
 
 ### Rule 6:  Miscellaneous Rules
