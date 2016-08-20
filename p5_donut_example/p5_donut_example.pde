@@ -1,118 +1,106 @@
-import netP5.*;
-import oscP5.*;
+// Necessary for exquisite donut to work
+DonutCop cop;
+ArrayList<Sprinkle> sprinkles;
+IntList sprinklesToRemove;
 
-OscP5 osc;
-int myID = 1;
+// Other global variables
+PFont font;
+int counter = 0;
 
-ArrayList<Particle> particles = new ArrayList<Particle>();
-
-//constants
-//arraylist IDs
-int MAXP = 0;
-int MINP = 0;
-int MAXC = 100;
-float MAXV = 0.1;
-float MAXA = 0.1;
-
-int LEFTID = 0;
-int RIGHTID = 0;
-
-
-NetAddressList myNetAddressList = new NetAddressList();
-
-int listenPort = 9000;
-int broadcastPort = 9000;
-
-String particlePattern = "/particle/1";
-
-void setup(){
-  fullScreen();
-  osc = new OscP5(this, listenPort);
-  frameRate(60);
+void setup() {
+    // Necessary for exquisite donut to work
+    cop = new DonutCop(1);
+    sprinkles  = new ArrayList<Sprinkle>();
+    sprinklesToRemove = new IntList();
+    // Other properties
+    smooth(2);
+    //size(640,480,P2D);
+    fullScreen();
+    frameRate(60);
+    font = createFont("Courier New",48);
+    noStroke();
 }
 
-
-void draw(){
-  for(Particle p : particles){
-    p.display();
-  }
-  
-  for(int i = 0; i < particles.size(); i++) {
-    if(particles.get(i).pos.x < 0) {
-      
-    }
-  }
+// Testing function to initialize random sprinkles
+void produceRandomSprinkle(){
+    PVector pos = new PVector(0,random(1));
+    PVector vel = new PVector(random(.005)+.005,0);
+    PVector acc = new PVector(0,0);
+    Sprinkle p = new Sprinkle(pos,vel,acc, 0, 0);
+    cop.broadcastSprinkle(p);
 }
 
+void draw() {
+    // Do all background stuff here
+    background(0);
+    // Update and draw sprinkles
+    updateSprinkles();
+    if(counter%1 ==0){
+        //produceRandomSprinkle();   
+    }
+    counter++;
+    textFont(font,24);
+    fill(255);
+    text(str(int(frameRate))+" FPS, " + sprinkles.size()+" Sprinkles",20,60);
+}
 
-//OSC message handlers
-void oscEvent(OscMessage theOscMessage) {
-  
-  //handle a new particle
-  if(theOscMessage.addrPattern().equals(particlePattern)) {
-    //create new particle, pulling from params of message
-  
-    PVector pos = new PVector();
-    PVector vel = new PVector();
-    PVector acc = new PVector();
-    
-    float free0 = 0;
-    float free1 = 0;
-    
-    pos.y = map(theOscMessage.get(1).floatValue(), 0, 1, 0, height);
-    vel.x = map(theOscMessage.get(2).floatValue(), 0, 1, 0, width);
-    vel.y = map(theOscMessage.get(3).floatValue(), 0, 1, 0, height);
-    acc.x = map(theOscMessage.get(4).floatValue(), 0, 1, 0, width);
-    acc.y = map(theOscMessage.get(5).floatValue(), 0, 1, 0, height);
-    
-    free0 = theOscMessage.get(6).floatValue();
-    free1 = theOscMessage.get(7).floatValue();
-    
-    if(vel.x > 0){
-      pos.x = 0;
-    } else if ( vel.x < 0) {
-      pos.x = width;
-    }
-    
-    Particle p = new Particle(pos, vel, acc);
-    particles.add(p);
-  }
-    
-  //handle a control message
-  if(theOscMessage.addrPattern().equals("/control")){
-    //update constants
-    byte[] blob = theOscMessage.get(0).blobValue();
-    MAXP = theOscMessage.get(1).intValue();
-    MINP = theOscMessage.get(2).intValue();
-    MAXC = theOscMessage.get(3).intValue();
-    MAXV = map(theOscMessage.get(4).floatValue(), 0, 1, 0, width);
-    MAXA = map(theOscMessage.get(5).floatValue(), 0, 1, 0, width); 
-    
-    int val;
-    int maxId = 0;
-    LEFTID = 256;
-    RIGHTID -1;
-    for(int i = 0; i < blob.size(); i++) {
-      
-      val = (int)blob[i];
-      if(val > myID && val < LEFTID) {
-        LEFTID = val;
-      }
-      if(val < myID && val > RIGHTID) {
-        RIGHTID = val;
-      }
-      if (val > maxId) {
-        maxId = val;
-      }
-    }
-    
-    if(LEFTID == 256) {
-      LEFTID = 0;
-    }
-    if(RIGHTID == -1) {
-      RIGHTID = maxId;
-    }
+void drawSprinkle(Sprinkle p) {
+    int ballSize = 50;
+    float xBorder = -(float)ballSize/width/2;
+    float yBorder = (float)ballSize/height/2;
+    float xPos = (1-xBorder*2)*p.pos.x*width+width*(xBorder);
+    float yPos = (1-yBorder*2)*p.pos.y*height+height*(yBorder);
+    fill(255,p.pos.y*255.0,p.pos.x*255.0);
+    ellipse(xPos,yPos, ballSize, ballSize);
+}
 
-  }
-  
+void sprinklePhysics(Sprinkle p) {
+    // Reverse velocity if position is out of bounds
+    if(p.pos.y<0){
+       p.vel.y = Math.abs(p.vel.y);
+    }
+    else if(p.pos.y>1){
+       p.vel.y = Math.abs(p.vel.y)*-1;
+    }
+    else{
+        // Positive acceleration because y goes 0-Max top to bottom
+        //p.acc.y = .0002;   
+    }
+}
+
+void updateSprinkles(){
+    cop.update(sprinkles.size());
+    // Add new sprinkles
+    while(cop.hasNewSprinkles()){
+        // Get next sprinkle
+        Sprinkle p = cop.getNextSprinkle();
+        // Check if we can add it
+        if(cop.allowedToCreateSprinkle(sprinkles.size())){
+            sprinkles.add(p);
+        }
+    }
+    // Update sprinkles
+    for(int i= 0; i<sprinkles.size(); i++){
+        Sprinkle p = sprinkles.get(i);
+        // Move sprinkles
+        p.update(cop.maxVelocity(),cop.maxAcceleration());
+        // Draw sprinkles
+        drawSprinkle(p);
+        // Apply physics to sprinkles for next frame
+        sprinklePhysics(p);
+        // Set to remove and publish sprinkles that are outside screen
+        if(p.pos.x > 1 || p.pos.x < 0){
+            sprinklesToRemove.append(i);
+        }
+    }
+    // Sort descending to not screw up our indexing
+    sprinklesToRemove.sortReverse();
+    // Remove and publish sprinkles set for deletion
+    while(sprinklesToRemove.size()>0){
+        int idx = sprinklesToRemove.get(0);
+        Sprinkle p = sprinkles.get(idx);
+        cop.broadcastSprinkle(p);
+        sprinkles.remove(p);
+        sprinklesToRemove.remove(0);
+    }    
 }
