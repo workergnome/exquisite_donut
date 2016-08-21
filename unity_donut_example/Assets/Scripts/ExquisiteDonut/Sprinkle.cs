@@ -30,9 +30,8 @@ namespace ExquisiteDonut
 			vel = vel + acc;
 		}
 
-
-		public List<object> CreateOSCMessage() {
-			List<object> m = new List<object>();
+		public ArrayList CreateOSCData() {
+			ArrayList m = new ArrayList();
 			m.Add(pos.y);
 			m.Add(vel.x);
 			m.Add(vel.y);
