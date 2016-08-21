@@ -36,6 +36,7 @@ namespace ExquisiteDonut
 		// Global variables
 		//private IPAddress HOST = IPAddress.Parse("10.0.0.87");
 		private IPAddress HOST = IPAddress.Parse("10.0.0.163");
+		private IPAddress broadcastAddress = IPAddress.Parse("10.0.0.255");
 		private int PORT = 9000;
 		private int ID_EXPIRATION_IN_SECONDS = 10;
 		// Necessary for OSC
@@ -51,7 +52,7 @@ namespace ExquisiteDonut
 			osc = OSCHandler.Instance; //init OSC
 			osc.Init();
 			osc.CreateServer ("Listener",PORT);
-			osc.CreateClient ("Broadcaster", HOST, PORT);
+			osc.CreateClient ("Broadcaster", broadcastAddress, PORT);
 			packets = new List<OSCPacket> ();
 		}
 
@@ -63,23 +64,30 @@ namespace ExquisiteDonut
 			osc.UpdateLogs();
 			packets = osc.Servers["Listener"].packets;
 			int packetCounter = 1;
+			string logString = "";
 			while (packetCounter < packets.Count) {
 				OSCPacket packet = packets[packets.Count - packetCounter];
 				long currentTimestamp = packet.TimeStamp;
+
 				if (currentTimestamp <= lastPacketTimestamp) {
-					break;
+					packetCounter++;
+					continue;
 				}
-				string addr = packet.Address;
-				if (addr.Equals ("/status")) {
-					HandleStatusMessage (packet.Data);
-				} else if (addr.Equals ("/control")) {
-					HandleControlMessage (packet.Data);
-				} else if (addr.Equals ("/sprinkle/" + id.ToString ())) {
-					HandleSprinkleMessage (packet.Data);
-				}
+					string addr = packet.Address;
+					if (addr.Equals ("/status")) {
+						HandleStatusMessage (packet.Data);
+					} else if (addr.Equals ("/control")) {
+						HandleControlMessage (packet.Data);
+					} else if (addr.Equals ("/sprinkle/" + id.ToString ())) {
+						logString += " " + currentTimestamp +",\n" ;
+						HandleSprinkleMessage (packet.Data);
+					}
+				//}
+				//packets.RemoveAt (packets.Count - packetCounter);
 				packetCounter++;
 			}
 			if (packetCounter > 1) {
+				//Debug.Log (logString+"PACKET LENGTH " +packets.Count);
 				lastPacketTimestamp = packets [packets.Count - 1].TimeStamp;
 			}
 
@@ -245,7 +253,7 @@ namespace ExquisiteDonut
 			if (rightId == -1) {
 				rightId = maxId;
 			}
-			Debug.Log("My left ID is " + leftId.ToString() + " and my right ID is " + rightId.ToString() +  ".");
+			//Debug.Log("My left ID is " + leftId.ToString() + " and my right ID is " + rightId.ToString() +  ".");
 		}
 
 		private void HandleSprinkleMessage(List<object> m) {
@@ -253,12 +261,15 @@ namespace ExquisiteDonut
 			Vector2 vel = new Vector2();
 			Vector2 acc = new Vector2();
 			List<object> dataVec = m;
-			pos.x = 0;
 			pos.y = (float)dataVec [0];
 			vel.x = (float)dataVec [1];
 			vel.y = (float)dataVec [2];
 			acc.x = (float)dataVec [3];
 			acc.y = (float)dataVec [4];
+			if (vel.x > 0)
+				pos.x = 0;
+			else
+				pos.x = 1;
 			float free1 = (float)dataVec [5];
 			float free2 = (float)dataVec [6];
 			Sprinkle p = new Sprinkle(pos, vel, acc, free1, free2);
