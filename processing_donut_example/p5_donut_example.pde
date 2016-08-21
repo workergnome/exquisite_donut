@@ -6,28 +6,32 @@ IntList sprinklesToRemove;
 // Other global variables
 PFont font;
 int counter = 0;
+float maxY;
 
 void setup() {
     // Necessary for exquisite donut to work
-    cop = new DonutCop(1);
+    cop = new DonutCop(0);
     sprinkles  = new ArrayList<Sprinkle>();
     sprinklesToRemove = new IntList();
     // Other properties
     smooth(2);
-    //size(640,480,P2D);
-    fullScreen();
+    size(640,480,P2D);
+    //fullScreen();
     frameRate(60);
     font = createFont("Courier New",48);
     noStroke();
+    maxY = float(height)/width;
+    println(maxY);
 }
 
 // Testing function to initialize random sprinkles
 void produceRandomSprinkle(){
-    PVector pos = new PVector(0,random(1));
-    PVector vel = new PVector(random(.005)+.005,0);
+    PVector pos = new PVector(0,random(maxY));
+    PVector vel = new PVector(1*(random(.005)+.005),0);
     PVector acc = new PVector(0,0);
     Sprinkle p = new Sprinkle(pos,vel,acc, 0, 0);
     cop.broadcastSprinkle(p);
+    cop.mentionNewSprinkle();
 }
 
 void draw() {
@@ -35,8 +39,8 @@ void draw() {
     background(0);
     // Update and draw sprinkles
     updateSprinkles();
-    if(counter%1 ==0){
-        //produceRandomSprinkle();   
+    if(counter%60 ==0){
+        produceRandomSprinkle(); 
     }
     counter++;
     textFont(font,24);
@@ -47,9 +51,9 @@ void draw() {
 void drawSprinkle(Sprinkle p) {
     int ballSize = 50;
     float xBorder = -(float)ballSize/width/2;
-    float yBorder = (float)ballSize/height/2;
+    float yBorder = (float)ballSize/width/2;
     float xPos = (1-xBorder*2)*p.pos.x*width+width*(xBorder);
-    float yPos = (1-yBorder*2)*p.pos.y*height+height*(yBorder);
+    float yPos = (1-yBorder*2)*p.pos.y*width+width*(yBorder);
     fill(255,p.pos.y*255.0,p.pos.x*255.0);
     ellipse(xPos,yPos, ballSize, ballSize);
 }
@@ -59,12 +63,12 @@ void sprinklePhysics(Sprinkle p) {
     if(p.pos.y<0){
        p.vel.y = Math.abs(p.vel.y);
     }
-    else if(p.pos.y>1){
+    else if(p.pos.y>maxY){
        p.vel.y = Math.abs(p.vel.y)*-1;
     }
     else{
         // Positive acceleration because y goes 0-Max top to bottom
-        //p.acc.y = .0002;   
+        p.acc.y = .0002;   
     }
 }
 
