@@ -6,10 +6,10 @@ using System.Collections.Generic;
 using System.Text;
 using UnityOSC;
 
+
 namespace ExquisiteDonut
 {
 	public class DonutCop {
-		
 		private class TimeStampedID{
 			public long timeStamp;
 			public int id;
@@ -40,20 +40,36 @@ namespace ExquisiteDonut
 		private int PORT = 9000;
 		private int ID_EXPIRATION_IN_SECONDS = 10;
 		// Necessary for OSC
-		private OSCHandler osc;
+		private Osc osc;
 		private List<OSCPacket> packets;
 		private long lastPacketTimestamp;
+		private int currentSecond;
 
 		// Known ID's
 		private List<TimeStampedID> knownIDs = new List<TimeStampedID>();
 
 		// Script initialization
-		public DonutCop() {
-			osc = OSCHandler.Instance; //init OSC
+		public DonutCop(Osc _osc) {
+			osc = _osc;
+			osc.SetAllMessageHandler(AllMessageHandler);
+			//osc = OSCHandler.Instance; //init OSC
+			/*
 			osc.Init();
 			osc.CreateServer ("Listener",PORT);
 			osc.CreateClient ("Broadcaster", broadcastAddress, PORT);
 			packets = new List<OSCPacket> ();
+			*/
+		}
+
+		public void AllMessageHandler(OscMessage msg){
+			string addr = msg.Address;
+			if (addr.Equals ("/status")) {
+				HandleStatusMessage (msg.Values);
+			} else if (addr.Equals ("/control")) {
+				HandleControlMessage (msg.Values);
+			} else if (addr.Equals ("/sprinkle/" + id.ToString ())) {
+				HandleSprinkleMessage (msg.Values);
+			}
 		}
 
 		// NOTE: The received messages at each server are updated here
@@ -61,6 +77,7 @@ namespace ExquisiteDonut
 		// How many frames per second or Update() calls per frame?
 		public void Update(int size) {
 			// Update OSC
+			/*
 			osc.UpdateLogs();
 			packets = osc.Servers["Listener"].packets;
 			int packetCounter = 1;
@@ -90,23 +107,28 @@ namespace ExquisiteDonut
 				//Debug.Log (logString+"PACKET LENGTH " +packets.Count);
 				lastPacketTimestamp = packets [packets.Count - 1].TimeStamp;
 			}
-
-			if (CurrentSecond() != lastSecond) {
+			*/
+			currentSecond = GetCurrentSecond ();
+			if (currentSecond != lastSecond) {
 				SendStatusMessage(size);
 				if (id == 0) {
 					SendControlMessage();
 					RemoveExpiredIds();
 				}
-				lastSecond = CurrentSecond();
+				lastSecond = currentSecond;
 				createdSprinkles = 0;
 			}
 		}
 
 		public void BroadcastSprinkle(Sprinkle p) {
-			List<object> m = p.CreateOSCMessage();
+			ArrayList data = p.CreateOSCData();
 			int id = (p.pos.x < 0) ? leftId : rightId;
 			String addr = "/sprinkle/" + id.ToString();
-			osc.SendMessageToClient("Broadcaster",addr,m);
+			OscMessage m = Osc.StringToOscMessage(addr);
+			m.Values = data;
+			osc.Send(m);
+			//osc.SendMessageToClient("Broadcaster",addr,m);
+
 		}
 
 		public void MentionNewSprinkle() {
@@ -151,18 +173,19 @@ namespace ExquisiteDonut
 		}
 
 		// Internal Functions
-		private int CurrentSecond() {
+		private int GetCurrentSecond() {
 			return (int)Time.time;
 		}
 
 		private void SendStatusMessage(int size) {
-			List<object> m = new List<object>();
-			m.Add(id);
-			m.Add(size);
-			osc.SendMessageToClient("Broadcaster","/status",m);
+			OscMessage m = Osc.StringToOscMessage("/status");
+			m.Values.Add(id);
+			m.Values.Add(size);
+			osc.Send (m);
 		}
 
 		private void SendControlMessage() {
+			/*
 			// If you haven't heard from anyone, don't send anything.
 			if (knownIDs.Count == 0) { 
 				return;
@@ -174,18 +197,19 @@ namespace ExquisiteDonut
 			}
 			// Calculate my own IDs because I won't be listening to /control
 			CalculateIDs (data);
-			List<object> m = new List<object>();
-			m.Add(data);
-			m.Add(_maxSprinkles);
-			m.Add(_minSprinkles);
-			m.Add(_maxNewSprinkles);
-			m.Add(_maxVelocity);
-			m.Add(_maxAcceleration);
-			osc.SendMessageToClient("Broadcaster", "/control",m);
+			OscMessage m = Osc.StringToOscMessage("/control");
+			m.Values.Add(data);
+			m.Values.Add(_maxSprinkles);
+			m.Values.Add(_minSprinkles);
+			m.Values.Add(_maxNewSprinkles);
+			m.Values.Add(_maxVelocity);
+			m.Values.Add(_maxAcceleration);
+			osc.Send(m);
+			*/
 		}
 
 		private void RemoveExpiredIds() {
-			int expiredTime = CurrentSecond();
+			int expiredTime = GetCurrentSecond();
 			if (expiredTime <= ID_EXPIRATION_IN_SECONDS) {
 				return;
 			} else {
@@ -200,11 +224,11 @@ namespace ExquisiteDonut
 			}
 		}
 
-		private void HandleStatusMessage(List<object> m) {
-			List<object> dataVec = m;
+		private void HandleStatusMessage(ArrayList dataVec) {
 			int statusId = (int)dataVec [0];
 			int sprinkles = (int)dataVec [1];
-			TimeStampedID newID = new TimeStampedID(statusId, CurrentSecond());
+
+			TimeStampedID newID = new TimeStampedID(statusId, currentSecond);
 			int idx = knownIDs.FindIndex (x => x.id == newID.id);
 			if (idx>=0) {
 				knownIDs[idx] = newID;
@@ -214,8 +238,7 @@ namespace ExquisiteDonut
 			Debug.Log("Received an update from ID " + statusId + ": it has " + sprinkles + " sprinkles.");
 		}
 
-		private void HandleControlMessage(List<object> m) {
-			List<object> dataVec = m;
+		private void HandleControlMessage(ArrayList dataVec) {
 			byte[] data    = (byte[]) dataVec [0];
 			_maxSprinkles    = (int)dataVec [1];
 			_minSprinkles    = (int)dataVec [2];
@@ -256,11 +279,10 @@ namespace ExquisiteDonut
 			//Debug.Log("My left ID is " + leftId.ToString() + " and my right ID is " + rightId.ToString() +  ".");
 		}
 
-		private void HandleSprinkleMessage(List<object> m) {
+		private void HandleSprinkleMessage(ArrayList dataVec) {
 			Vector2 pos = new Vector2();
 			Vector2 vel = new Vector2();
 			Vector2 acc = new Vector2();
-			List<object> dataVec = m;
 			pos.y = (float)dataVec [0];
 			vel.x = (float)dataVec [1];
 			vel.y = (float)dataVec [2];

@@ -3,6 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using ExquisiteDonut;
 
+[RequireComponent (typeof (Osc))]
+[RequireComponent (typeof (UDPPacketIO))]
+
 public class UnityDonutExample : MonoBehaviour {
 	// Required for OSC Donut
 	private List<Sprinkle> sprinkles;
@@ -22,6 +25,7 @@ public class UnityDonutExample : MonoBehaviour {
 	private List<GameObject> dotsDisabled;
 	// Counter for generating random particles
 	private int counter;
+	private Osc osc;
 
 	void Awake() {
 		QualitySettings.vSyncCount = 0;
@@ -35,7 +39,16 @@ public class UnityDonutExample : MonoBehaviour {
 		// Required for OSC Donut
 		sprinkles = new List<Sprinkle>();
 		sprinklesToRemove = new List<int> ();
-		cop = new DonutCop ();
+		string RemoteIP = "10.0.0.255"; //127.0.0.1 signifies a local host (if testing locally
+		int SendToPort = 9000; //the port you will be sending from
+		int ListenerPort = 9000; //the port you will be listening on
+		UDPPacketIO udp = GetComponent<UDPPacketIO>();
+		udp.init(RemoteIP, SendToPort, ListenerPort);
+		osc = GetComponent<Osc>();
+		osc.init(udp);
+		//handler.SetAllMessageHandler(AllMessageHandler);
+
+		cop = new DonutCop (osc);
 		// Camera params
 		cam = Camera.main;
 		h = cam.pixelHeight;
@@ -72,7 +85,9 @@ public class UnityDonutExample : MonoBehaviour {
 		// Create random sprinkles for testing
 		counter++;
 		if (counter % 6 == 0) {
-			ProduceRandomSprinkle ();
+			if (cop.AllowedToCreateSprinkle (sprinkles.Count)) {
+				ProduceRandomSprinkle ();
+			}
 		}
 	}
 
@@ -82,7 +97,12 @@ public class UnityDonutExample : MonoBehaviour {
 		Vector2 vel = new Vector2 (cop.maxVelocity()/2, 0);//Random.Range(0.005f,0.01f),0);
 		Vector2 acc = new Vector2(0,0);
 		Sprinkle p = new Sprinkle(pos,vel,acc, 0, 0);
-		cop.BroadcastSprinkle(p);
+		sprinkles.Add (p);
+		int dotsLeft = dotsDisabled.Count;
+		if (dotsLeft > 0) {
+			EnableDot (dotsLeft - 1);
+		}
+		//cop.BroadcastSprinkle(p);
 	}
 
 	void UpdateSprinkles(){
@@ -90,13 +110,11 @@ public class UnityDonutExample : MonoBehaviour {
 		// Add new sprinkles from OSC
 		while(cop.HasNewSprinkles()){
 			Sprinkle p = cop.GetNextSprinkle ();
-			//if (cop.AllowedToCreateSprinkle (sprinkles.Count)) {
-				sprinkles.Add (p);
-				int dotsLeft = dotsDisabled.Count;
-				if (dotsLeft > 0) {
-					EnableDot (dotsLeft - 1);
-				}
-			//}
+			sprinkles.Add (p);
+			int dotsLeft = dotsDisabled.Count;
+			if (dotsLeft > 0) {
+				EnableDot (dotsLeft - 1);
+			}
 		}
 		// Update sprinkles and their game objects
 		for(int i= 0; i<sprinkles.Count; i++){
