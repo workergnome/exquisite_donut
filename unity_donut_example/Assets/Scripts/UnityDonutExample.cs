@@ -23,6 +23,13 @@ public class UnityDonutExample : MonoBehaviour {
 	// Counter for generating random particles
 	private int counter;
 
+	void Awake() {
+		QualitySettings.vSyncCount = 0;
+		Application.targetFrameRate = -1;
+
+	}
+
+
 	// Use this for initialization
 	void Start () {
 		// Required for OSC Donut
@@ -43,6 +50,19 @@ public class UnityDonutExample : MonoBehaviour {
 			dotsDisabled.Add (dots [i]);
 		}
 		counter = 0;
+		float targetFramerate = 60;
+		Time.fixedDeltaTime = 1F / targetFramerate;
+	}
+
+	// FixedUpdate is called at a constant framerate set above
+	void FixedUpdate(){
+		for (int i = 0; i < sprinkles.Count; i++) {
+			Sprinkle p = sprinkles[i];
+			// Move sprinkles
+			p.Update(cop.maxVelocity(),cop.maxAcceleration());
+			// Apply physics to sprinkles for next frame
+			SprinklePhysics (p);
+		}
 	}
 	
 	// Update is called once per frame
@@ -51,7 +71,7 @@ public class UnityDonutExample : MonoBehaviour {
 		UpdateSprinkles ();
 		// Create random sprinkles for testing
 		counter++;
-		if (counter % 300 == 0) {
+		if (counter % 6 == 0) {
 			ProduceRandomSprinkle ();
 		}
 	}
@@ -59,7 +79,7 @@ public class UnityDonutExample : MonoBehaviour {
 	// Testing function to initialize random sprinkles
 	void ProduceRandomSprinkle(){
 		Vector2 pos = new Vector2 (0, Random.value);
-		Vector2 vel = new Vector2(Random.Range(0.005f,0.01f),0);
+		Vector2 vel = new Vector2 (cop.maxVelocity()/2, 0);//Random.Range(0.005f,0.01f),0);
 		Vector2 acc = new Vector2(0,0);
 		Sprinkle p = new Sprinkle(pos,vel,acc, 0, 0);
 		cop.BroadcastSprinkle(p);
@@ -70,24 +90,24 @@ public class UnityDonutExample : MonoBehaviour {
 		// Add new sprinkles from OSC
 		while(cop.HasNewSprinkles()){
 			Sprinkle p = cop.GetNextSprinkle ();
-			if (cop.AllowedToCreateSprinkle (sprinkles.Count)) {
+			//if (cop.AllowedToCreateSprinkle (sprinkles.Count)) {
 				sprinkles.Add (p);
 				int dotsLeft = dotsDisabled.Count;
 				if (dotsLeft > 0) {
 					EnableDot (dotsLeft - 1);
 				}
-			}
+			//}
 		}
 		// Update sprinkles and their game objects
 		for(int i= 0; i<sprinkles.Count; i++){
-			Sprinkle p = sprinkles[i];
-			// Move sprinkles
-			p.Update(cop.maxVelocity(),cop.maxAcceleration());
-			// Draw sprinkles
-			DrawSprinkle(p, i);
-			// Apply physics to sprinkles for next frame
-			SprinklePhysics(p);
-			// Set to remove and publish sprinkles that are outside screen
+			Sprinkle p = sprinkles[i];// Draw sprinkles
+			//if(dotsEnabled.Count + dotsDisabled.Count != dots.Length)Debug.Log("MISMATCH");
+
+			if (dotsEnabled.Count != sprinkles.Count) { 
+				//if (counter % 3 == 0)
+				//	Debug.Log ("MISMATCH" + (dotsEnabled.Count - sprinkles.Count));
+			}
+			else DrawSprinkle(p, i);
 			if(p.pos.x > 1 || p.pos.x < 0){
 				sprinklesToRemove.Add(i);
 			}
@@ -106,8 +126,13 @@ public class UnityDonutExample : MonoBehaviour {
 			DisableDot (idx);
 		}
 		// Remove overflow sprinkles
-		while(sprinkles.Count > cop.maxSprinkles()){
+		while(sprinkles.Count >= cop.maxSprinkles()){
 			sprinkles.RemoveAt(0);
+			DisableDot (0);
+		}
+		if (dotsEnabled.Count != sprinkles.Count) { 
+			if (counter % 3 == 0)
+				Debug.Log ("MISMATCH" + (dotsEnabled.Count - sprinkles.Count));
 		}
 	}
 
@@ -116,7 +141,7 @@ public class UnityDonutExample : MonoBehaviour {
 		int layerMask = 1 << 8;
 		if (Physics.Raycast (ray, out hit, Mathf.Infinity, layerMask)) {
 			Debug.DrawLine(ray.origin, hit.point, new Color (0, 1, 0));
-			dotsEnabled [idx].transform.position = hit.point;
+			dotsEnabled[idx].transform.position = hit.point;
 		}
 	}
 
@@ -141,7 +166,7 @@ public class UnityDonutExample : MonoBehaviour {
 			p.vel.y = Mathf.Abs(p.vel.y)*-1;
 		}
 		else{
-			p.acc.y = .0002f;   
+			//p.acc.y = .0002f;   
 		}
 	}
 }
