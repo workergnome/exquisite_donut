@@ -5,24 +5,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System;
+using UnityOSC;
 
-//The OscMessage class is a data structure that represents an OSC address and an arbitrary number of values to be sent to that address.
-public class OscMessage
-{
-
-	// The OSC address of the message as a string.
-	public string Address;
-
-	// The list of values to be delivered to the Address.
-	public ArrayList Values;
-
-	public OscMessage ()
-	{
-		Values = new ArrayList ();
-	}
-}
-
-public delegate void OscMessageHandler (OscMessage oscM);
+public delegate void OscMessageHandler (OSCMessage oscM);
 
 public class Osc : MonoBehaviour
 {
@@ -87,7 +72,7 @@ public class Osc : MonoBehaviour
 				//Debug.Log("received packed of len=" + length);
 				if (length > 0) {
 					ArrayList messages = Osc.PacketToOscMessages (buffer, length);
-					foreach (OscMessage om in messages) {
+					foreach (OSCMessage om in messages) {
 						if (AllMessageHandler != null)
 							AllMessageHandler (om);
 						OscMessageHandler h = (OscMessageHandler)Hashtable.Synchronized (AddressTable) [om.Address];
@@ -108,9 +93,9 @@ public class Osc : MonoBehaviour
 	}
 
 
-	// Send an individual OSC message.  Internally takes the OscMessage object and
+	// Send an individual OSC message.  Internally takes the OSCMessage object and
 	// serializes it into a byte[] suitable for sending to the PacketIO.
-	public void Send (OscMessage oscMessage)
+	public void Send (OSCMessage oscMessage)
 	{
 		byte[] packet = new byte[1000];
 		int length = Osc.OscMessageToPacket (oscMessage, packet, 1000);
@@ -118,7 +103,7 @@ public class Osc : MonoBehaviour
 	}
 
 
-	// Sends a list of OSC Messages.  Internally takes the OscMessage objects and
+	// Sends a list of OSC Messages.  Internally takes the OSCMessage objects and
 	// serializes them into a byte[] suitable for sending to the PacketExchange.
 
 	//oms - The OSC Message to send.
@@ -131,7 +116,7 @@ public class Osc : MonoBehaviour
 
 
 	// Set the method to call back on when any message is received.
-	// The method needs to have the OscMessageHandler signature - i.e. void amh( OscMessage oscM )
+	// The method needs to have the OscMessageHandler signature - i.e. void amh( OSCMessage oscM )
 
 	// amh - The method to call back on.
 	public void SetAllMessageHandler (OscMessageHandler amh)
@@ -142,7 +127,7 @@ public class Osc : MonoBehaviour
 
 	// Set the method to call back on when a message with the specified
 	// address is received.  The method needs to have the OscMessageHandler signature - i.e.
-	// void amh( OscMessage oscM )
+	// void amh( OSCMessage oscM )
 
 	// key - Address string to be matched
 	// ah - he method to call back on.
@@ -151,87 +136,31 @@ public class Osc : MonoBehaviour
 		Hashtable.Synchronized (AddressTable).Add (key, ah);
 	}
 
-
-
 	// General static helper that returns a string suitable for printing representing the supplied
 	// OscMessage.
 
-	//  message - The OscMessage to be stringified
-	// returns The OscMessage as a string.
-	public static string OscMessageToString (OscMessage message)
+	//  message - The OSCMessage to be stringified
+	// returns The OSCMessage as a string.
+	public static string OscMessageToString (OSCMessage message)
 	{
 		StringBuilder s = new StringBuilder ();
 		s.Append (message.Address);
-		foreach (object o in message.Values) {
+		foreach (object o in message.Data) {
 			s.Append (" ");
 			s.Append (o.ToString ());
 		}
 		return s.ToString ();
 	}
 
-
-	// Creates an OscMessage from a string - extracts the address and determines each of the values.
-
-	// message - The string to be turned into an OscMessage
-	// returns - The OscMessage
-	public static OscMessage StringToOscMessage (string message)
+	// Turns raw bytes into a string for debugging
+	private static string Dump (byte[] packet, int start, int length)
 	{
-		OscMessage oM = new OscMessage ();
-		// Console.WriteLine("Splitting " + message);
-		string[] ss = message.Split (new char[] { ' ' });
-		IEnumerator sE = ss.GetEnumerator ();
-		if (sE.MoveNext ())
-			oM.Address = (string)sE.Current;
-		while (sE.MoveNext ()) {
-			string s = (string)sE.Current;
-			// Console.WriteLine("  <" + s + ">");
-			if (s.StartsWith ("\"")) {
-				StringBuilder quoted = new StringBuilder ();
-				bool looped = false;
-				if (s.Length > 1)
-					quoted.Append (s.Substring (1));
-				else
-					looped = true;
-				while (sE.MoveNext ()) {
-					string a = (string)sE.Current;
-					// Console.WriteLine("    q:<" + a + ">");
-					if (looped)
-						quoted.Append (" ");
-					if (a.EndsWith ("\"")) {
-						quoted.Append (a.Substring (0, a.Length - 1));
-						break;
-					} else {
-						if (a.Length == 0)
-							quoted.Append (" ");
-						else
-							quoted.Append (a);
-					}
-					looped = true;
-				}
-				oM.Values.Add (quoted.ToString ());
-			} else {
-				if (s.Length > 0) {
-					try {
-						int i = int.Parse (s);
-						// Console.WriteLine("  i:" + i);
-						oM.Values.Add (i);
-					} catch {
-						try {
-							float f = float.Parse (s);
-							// Console.WriteLine("  f:" + f);
-							oM.Values.Add (f);
-						} catch {
-							// Console.WriteLine("  s:" + s);
-							oM.Values.Add (s);
-						}
-					}
-
-				}
-			}
-		}
-		return oM;
+		StringBuilder sb = new StringBuilder ();
+		int index = start;
+		while (index < length)
+			sb.Append (packet [index++] + "|");
+		return sb.ToString ();
 	}
-
 
 	// Takes a packet (byte[]) and turns it into a list of OscMessages.
 
@@ -251,7 +180,7 @@ public class Osc : MonoBehaviour
 	{
 		int index = 0;
 		if (messages.Count == 1)
-			index = OscMessageToPacket ((OscMessage)messages [0], packet, 0, length);
+			index = OscMessageToPacket ((OSCMessage)messages [0], packet, 0, length);
 		else {
 			// Write the first bundle bit
 			index = InsertString ("#bundle", packet, index, length);
@@ -260,7 +189,7 @@ public class Osc : MonoBehaviour
 			while ((c--) > 0)
 				packet [index++]++;
 			// Now, put each message preceded by it's length
-			foreach (OscMessage oscM in messages) {
+			foreach (OSCMessage oscM in messages) {
 				int lengthIndex = index;
 				index += 4;
 				int packetStart = index;
@@ -278,79 +207,21 @@ public class Osc : MonoBehaviour
 
 	// Creates a packet (an array of bytes) from a single OscMessage.
 
-	// oscM - The OscMessage to be returned as a packet.
+	// oscM - The OSCMessage to be returned as a packet.
 	//packet - The packet to be populated with the OscMessage.
 	//length - The usable size of the array of bytes.
 	//returns - The length of the packet
-	public static int OscMessageToPacket (OscMessage oscM, byte[] packet, int length)
+	public static int OscMessageToPacket (OSCMessage oscM, byte[] packet, int length)
 	{
 		return OscMessageToPacket (oscM, packet, 0, length);
 	}
 
-	protected static byte[] SwapEndian (byte[] data)
-	{
-		byte[] swapped = new byte[data.Length];
-		for (int i = data.Length - 1, j = 0; i >= 0; i--, j++) {
-			swapped [j] = data [i];
-		}
-		return swapped;
-	}
 	// Creates an array of bytes from a single OscMessage.  Used internally.
-	private static int OscMessageToPacket (OscMessage oscM, byte[] packet, int start, int length)
-	{
+	private static int OscMessageToPacket (OSCMessage oscM, byte[] packet, int start, int length)
+	{		
 		int index = start;
-		index = InsertString (oscM.Address, packet, index, length);
-		//if (oscM.Values.Count > 0)
-		{
-			StringBuilder tag = new StringBuilder ();
-			tag.Append (",");
-			int tagIndex = index;
-			index += PadSize (2 + oscM.Values.Count);
-
-			foreach (object o in oscM.Values) {
-				Type type = o.GetType ();
-				byte[] data = null;
-				switch (type.Name) {
-				case "Int32":
-					tag.Append ("i");
-					data = BitConverter.GetBytes((int)o);
-					if (BitConverter.IsLittleEndian) data = SwapEndian(data);
-					break;
-
-				case "Int64":
-					tag.Append ("l");
-					data = BitConverter.GetBytes((long)o);
-					if (BitConverter.IsLittleEndian) data = SwapEndian(data);
-					break;
-
-				case "Single":
-					tag.Append ("f");
-					data = BitConverter.GetBytes ((float)o);
-					if (BitConverter.IsLittleEndian)
-						data = SwapEndian (data);
-					break;
-
-				case "Double":
-					tag.Append ("d");
-					data = BitConverter.GetBytes((double)o);
-					if (BitConverter.IsLittleEndian) data = SwapEndian(data);
-					break;
-
-				case "String":
-					tag.Append ("s");
-					index = InsertString (o.ToString (), packet, index, length);
-					break;
-
-				default:
-					break;
-				}
-
-				for (int j = 0; j < data.Length; j++) {
-					packet [index++] = data [j];
-				}
-			}
-			InsertString (tag.ToString (), packet, tagIndex, length);
-		}
+		oscM.BinaryData.CopyTo (packet, index);
+		index += oscM.BinaryData.Length;
 		return index;
 	}
 
@@ -369,7 +240,7 @@ public class Osc : MonoBehaviour
 				index += 16;
 				while (index < length) {
 					int messageSize = (packet [index++] << 24) + (packet [index++] << 16) + (packet [index++] << 8) + packet [index++];
-					/*int newIndex = */
+					//int newIndex = 
 					ExtractMessages (messages, packet, index, length);
 					index += messageSize;
 				}
@@ -379,53 +250,15 @@ public class Osc : MonoBehaviour
 		return index;
 	}
 
-
 	// Extracts a messages from a packet.
 	private static int ExtractMessage (ArrayList messages, byte[] packet, int start, int length)
 	{
-		OscMessage oscM = new OscMessage ();
-		oscM.Address = ExtractString (packet, start, length);
-		int index = start + PadSize (oscM.Address.Length + 1);
-		string typeTag = ExtractString (packet, index, length);
-		index += PadSize (typeTag.Length + 1);
-		//oscM.Values.Add(typeTag);
-		foreach (char c in typeTag) {
-			switch (c) {
-			case ',':
-				break;
-			case 's':
-				{
-					string s = ExtractString (packet, index, length);
-					index += PadSize (s.Length + 1);
-					oscM.Values.Add (s);
-					break;
-				}
-			case 'i':
-				{
-					int i = (packet [index++] << 24) + (packet [index++] << 16) + (packet [index++] << 8) + packet [index++];
-					oscM.Values.Add (i);
-					break;
-				}
-			case 'f':
-				{
-					byte[] buffer = new byte[4];
-					buffer [3] = packet [index++];
-					buffer [2] = packet [index++];
-					buffer [1] = packet [index++];
-					buffer [0] = packet [index++];
-					MemoryStream ms = new MemoryStream (buffer);
-					BinaryReader br = new BinaryReader (ms);
-					float f = br.ReadSingle ();
-					oscM.Values.Add (f);
-					break;
-				}
-			}
-		}
-		messages.Add (oscM);
+		int index = start;
+		OSCMessage m = OSCMessage.Unpack(packet,ref index);
+		messages.Add (m);
 		return index;
 	}
-
-
+		
 	// Removes a string from a packet.  Used internally.
 	private static string ExtractString (byte[] packet, int start, int length)
 	{
@@ -433,15 +266,6 @@ public class Osc : MonoBehaviour
 		int index = start;
 		while (packet [index] != 0 && index < length)
 			sb.Append ((char)packet [index++]);
-		return sb.ToString ();
-	}
-
-	private static string Dump (byte[] packet, int start, int length)
-	{
-		StringBuilder sb = new StringBuilder ();
-		int index = start;
-		while (index < length)
-			sb.Append (packet [index++] + "|");
 		return sb.ToString ();
 	}
 
@@ -462,16 +286,6 @@ public class Osc : MonoBehaviour
 				packet [index++] = 0;
 		}
 		return index;
-	}
-
-	// Takes a length and returns what it would be if padded to the nearest 4 bytes.
-	private static int PadSize (int rawSize)
-	{
-		int pad = rawSize % 4;
-		if (pad == 0)
-			return rawSize;
-		else
-			return rawSize + (4 - pad);
 	}
 }
 
