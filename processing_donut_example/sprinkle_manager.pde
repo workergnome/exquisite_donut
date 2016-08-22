@@ -2,7 +2,6 @@
 // Instead the user has to call clearRemoved to actually remove all the indexes
 // marked for removal using removeSafe, usually in some sort of update loop;
 
-import java.util.*;
 class SprinkleManager extends ArrayList<Sprinkle>{
     IntList sprinklesToRemove;
     
