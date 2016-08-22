@@ -82,7 +82,6 @@ namespace UnityOSC
 		#endregion
 	
 		#region Methods
-		abstract public bool IsBundle(); 
 		abstract public void Pack();
 		abstract public void Append<T>(T msgvalue);
 		
@@ -256,46 +255,6 @@ namespace UnityOSC
 
 			return (T)msgvalue;
 		}
-		
-		/// <summary>
-		/// Unpacks an array of binary data.
-		/// </summary>
-		/// <param name="data">
-		/// A <see cref="System.Byte[]"/>
-		/// </param>
-		/// <returns>
-		/// A <see cref="OSCPacket"/>
-		/// </returns>
-		public static OSCPacket Unpack(byte[] data)
-		{
-			int start = 0;
-			return Unpack(data, ref start, data.Length);
-		}
-		
-		/// <summary>
-		/// Unpacks an array of binary data given reference start and end pointers.
-		/// </summary>
-		/// <param name="data">
-		/// A <see cref="System.Byte[]"/>
-		/// </param>
-		/// <param name="start">
-		/// A <see cref="System.Int32"/>
-		/// </param>
-		/// <param name="end">
-		/// A <see cref="System.Int32"/>
-		/// </param>
-		/// <returns>
-		/// A <see cref="OSCPacket"/>
-		/// </returns>
-		public static OSCPacket Unpack(byte[] data, ref int start, int end)
-		{
-            if (data[start] == '#')
-            {
-                return OSCBundle.Unpack(data, ref start, end);
-            }
-
-            else return OSCMessage.Unpack(data, ref start);
-		}		
 		
 		/// <summary>
 		/// Pads null a list of bytes.

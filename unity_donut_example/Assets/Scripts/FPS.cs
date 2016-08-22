@@ -3,6 +3,10 @@ using System.Collections;
 
 public class FPS : MonoBehaviour {
 	float deltaTime = 0.0f;
+	void Awake() {
+		QualitySettings.vSyncCount = 0;
+		Application.targetFrameRate = -1;
+	}
 
 	void Update()
 	{

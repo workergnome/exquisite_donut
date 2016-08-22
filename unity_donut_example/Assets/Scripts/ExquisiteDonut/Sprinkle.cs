@@ -6,7 +6,7 @@ using UnityOSC;
 
 namespace ExquisiteDonut
 {
-	public class Sprinkle{
+	public class Sprinkle {
 		
 		public Vector2 pos;
 		public Vector2 vel;
@@ -30,15 +30,15 @@ namespace ExquisiteDonut
 			vel = vel + acc;
 		}
 
-		public ArrayList CreateOSCData() {
-			ArrayList m = new ArrayList();
-			m.Add(pos.y);
-			m.Add(vel.x);
-			m.Add(vel.y);
-			m.Add(acc.x);
-			m.Add(acc.y);
-			m.Add(free1);
-			m.Add(free2);
+		public OSCMessage CreateOSCMessage() {
+			OSCMessage m = new OSCMessage("");
+			m.Append(pos.y);
+			m.Append(vel.x);
+			m.Append(vel.y);
+			m.Append(acc.x);
+			m.Append(acc.y);
+			m.Append(free1);
+			m.Append(free2);
 			return m;
 		}
 	}

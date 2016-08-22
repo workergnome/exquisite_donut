@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Text;
 using UnityOSC;
 
-
 namespace ExquisiteDonut
 {
 	public class DonutCop {
@@ -34,15 +33,9 @@ namespace ExquisiteDonut
 		// Sprinkle buffer
 		private List<Sprinkle> sprinkleBuffer= new List<Sprinkle>();
 		// Global variables
-		//private IPAddress HOST = IPAddress.Parse("10.0.0.87");
-		private IPAddress HOST = IPAddress.Parse("10.0.0.163");
-		private IPAddress broadcastAddress = IPAddress.Parse("10.0.0.255");
-		private int PORT = 9000;
 		private int ID_EXPIRATION_IN_SECONDS = 10;
 		// Necessary for OSC
 		private Osc osc;
-		private List<OSCPacket> packets;
-		private long lastPacketTimestamp;
 		private int currentSecond;
 
 		// Known ID's
@@ -52,23 +45,16 @@ namespace ExquisiteDonut
 		public DonutCop(Osc _osc) {
 			osc = _osc;
 			osc.SetAllMessageHandler(AllMessageHandler);
-			//osc = OSCHandler.Instance; //init OSC
-			/*
-			osc.Init();
-			osc.CreateServer ("Listener",PORT);
-			osc.CreateClient ("Broadcaster", broadcastAddress, PORT);
-			packets = new List<OSCPacket> ();
-			*/
 		}
 
-		public void AllMessageHandler(OscMessage msg){
+		public void AllMessageHandler(OSCMessage msg){
 			string addr = msg.Address;
-			if (addr.Equals ("/status")) {
-				HandleStatusMessage (msg.Values);
+			if (id == 0 && addr.Equals ("/status")) {
+				HandleStatusMessage (msg.Data);
 			} else if (addr.Equals ("/control")) {
-				HandleControlMessage (msg.Values);
+				HandleControlMessage (msg.Data);
 			} else if (addr.Equals ("/sprinkle/" + id.ToString ())) {
-				HandleSprinkleMessage (msg.Values);
+				HandleSprinkleMessage (msg.Data);
 			}
 		}
 
@@ -77,37 +63,6 @@ namespace ExquisiteDonut
 		// How many frames per second or Update() calls per frame?
 		public void Update(int size) {
 			// Update OSC
-			/*
-			osc.UpdateLogs();
-			packets = osc.Servers["Listener"].packets;
-			int packetCounter = 1;
-			string logString = "";
-			while (packetCounter < packets.Count) {
-				OSCPacket packet = packets[packets.Count - packetCounter];
-				long currentTimestamp = packet.TimeStamp;
-
-				if (currentTimestamp <= lastPacketTimestamp) {
-					packetCounter++;
-					continue;
-				}
-					string addr = packet.Address;
-					if (addr.Equals ("/status")) {
-						HandleStatusMessage (packet.Data);
-					} else if (addr.Equals ("/control")) {
-						HandleControlMessage (packet.Data);
-					} else if (addr.Equals ("/sprinkle/" + id.ToString ())) {
-						logString += " " + currentTimestamp +",\n" ;
-						HandleSprinkleMessage (packet.Data);
-					}
-				//}
-				//packets.RemoveAt (packets.Count - packetCounter);
-				packetCounter++;
-			}
-			if (packetCounter > 1) {
-				//Debug.Log (logString+"PACKET LENGTH " +packets.Count);
-				lastPacketTimestamp = packets [packets.Count - 1].TimeStamp;
-			}
-			*/
 			currentSecond = GetCurrentSecond ();
 			if (currentSecond != lastSecond) {
 				SendStatusMessage(size);
@@ -121,13 +76,11 @@ namespace ExquisiteDonut
 		}
 
 		public void BroadcastSprinkle(Sprinkle p) {
-			ArrayList data = p.CreateOSCData();
+			OSCMessage m = p.CreateOSCMessage();
 			int id = (p.pos.x < 0) ? leftId : rightId;
 			String addr = "/sprinkle/" + id.ToString();
-			OscMessage m = Osc.StringToOscMessage(addr);
-			m.Values = data;
+			m.Address = addr;
 			osc.Send(m);
-			//osc.SendMessageToClient("Broadcaster",addr,m);
 
 		}
 
@@ -152,7 +105,7 @@ namespace ExquisiteDonut
 		public Sprinkle GetNextSprinkle() {
 			int idx = sprinkleBuffer.Count-1;
 			Sprinkle p = sprinkleBuffer[idx];
-			sprinkleBuffer.RemoveAt(idx);
+			sprinkleBuffer.Remove(p);
 			return p;
 		}
 
@@ -178,14 +131,13 @@ namespace ExquisiteDonut
 		}
 
 		private void SendStatusMessage(int size) {
-			OscMessage m = Osc.StringToOscMessage("/status");
-			m.Values.Add(id);
-			m.Values.Add(size);
+			OSCMessage m = new OSCMessage("/status");
+			m.Append(id);
+			m.Append(size);
 			osc.Send (m);
 		}
 
 		private void SendControlMessage() {
-			/*
 			// If you haven't heard from anyone, don't send anything.
 			if (knownIDs.Count == 0) { 
 				return;
@@ -196,16 +148,15 @@ namespace ExquisiteDonut
 				data[i] = (byte)knownIDs[i].id;
 			}
 			// Calculate my own IDs because I won't be listening to /control
-			CalculateIDs (data);
-			OscMessage m = Osc.StringToOscMessage("/control");
-			m.Values.Add(data);
-			m.Values.Add(_maxSprinkles);
-			m.Values.Add(_minSprinkles);
-			m.Values.Add(_maxNewSprinkles);
-			m.Values.Add(_maxVelocity);
-			m.Values.Add(_maxAcceleration);
+			//CalculateIDs (data);
+			OSCMessage m = new OSCMessage("/control");
+			m.Append(data);
+			m.Append(_maxSprinkles);
+			m.Append(_minSprinkles);
+			m.Append(_maxNewSprinkles);
+			m.Append(_maxVelocity);
+			m.Append(_maxAcceleration);
 			osc.Send(m);
-			*/
 		}
 
 		private void RemoveExpiredIds() {
@@ -224,7 +175,7 @@ namespace ExquisiteDonut
 			}
 		}
 
-		private void HandleStatusMessage(ArrayList dataVec) {
+		private void HandleStatusMessage(List<object> dataVec) {
 			int statusId = (int)dataVec [0];
 			int sprinkles = (int)dataVec [1];
 
@@ -238,7 +189,7 @@ namespace ExquisiteDonut
 			Debug.Log("Received an update from ID " + statusId + ": it has " + sprinkles + " sprinkles.");
 		}
 
-		private void HandleControlMessage(ArrayList dataVec) {
+		private void HandleControlMessage(List<object> dataVec) {
 			byte[] data    = (byte[]) dataVec [0];
 			_maxSprinkles    = (int)dataVec [1];
 			_minSprinkles    = (int)dataVec [2];
@@ -276,10 +227,10 @@ namespace ExquisiteDonut
 			if (rightId == -1) {
 				rightId = maxId;
 			}
-			//Debug.Log("My left ID is " + leftId.ToString() + " and my right ID is " + rightId.ToString() +  ".");
+			Debug.Log("My left ID is " + leftId.ToString() + " and my right ID is " + rightId.ToString() +  ".");
 		}
 
-		private void HandleSprinkleMessage(ArrayList dataVec) {
+		private void HandleSprinkleMessage(List<object> dataVec) {
 			Vector2 pos = new Vector2();
 			Vector2 vel = new Vector2();
 			Vector2 acc = new Vector2();
