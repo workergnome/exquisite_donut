@@ -27,10 +27,10 @@ void setup() {
 // Testing function to initialize random sprinkles
 void produceRandomSprinkle(){
     PVector pos = new PVector(0,random(maxY));
-    PVector vel = new PVector(1*(random(.005)+.005),0);
     PVector acc = new PVector(0,0);
     Sprinkle p = new Sprinkle(pos,vel,acc, 0, 0);
-    cop.broadcastSprinkle(p);
+    sprinkles.add(p);
+    //cop.broadcastSprinkle(p);
     cop.mentionNewSprinkle();
 }
 
@@ -39,8 +39,9 @@ void draw() {
     background(0);
     // Update and draw sprinkles
     updateSprinkles();
-    if(counter%60 ==0){
-        produceRandomSprinkle(); 
+    if(counter%1 ==0){
+        if(cop.allowedToCreateSprinkle(sprinkles.size()))
+          produceRandomSprinkle(); 
     }
     counter++;
     textFont(font,24);
@@ -68,7 +69,7 @@ void sprinklePhysics(Sprinkle p) {
     }
     else{
         // Positive acceleration because y goes 0-Max top to bottom
-        p.acc.y = .0002;   
+        //p.acc.y = .0002;   
     }
 }
 
@@ -79,15 +80,19 @@ void updateSprinkles(){
         // Get next sprinkle
         Sprinkle p = cop.getNextSprinkle();
         // Check if we can add it
-        if(cop.allowedToCreateSprinkle(sprinkles.size())){
-            sprinkles.add(p);
-        }
+        sprinkles.add(p);
     }
     // Update sprinkles
     for(int i= 0; i<sprinkles.size(); i++){
         Sprinkle p = sprinkles.get(i);
         // Move sprinkles
-        p.update(cop.maxVelocity(),cop.maxAcceleration());
+        try{
+        p.update(cop.maxVelocity(),cop.maxAcceleration()); }
+        catch(Exception e){
+          sprinkles.remove(p);
+          println("FOUND A MALFORMED SPRINKLE AT" + i);
+          continue;
+        }
         // Draw sprinkles
         drawSprinkle(p);
         // Apply physics to sprinkles for next frame
