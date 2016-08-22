@@ -53,14 +53,15 @@ class DonutCop {
     // Received Control Variables
     private int _maxSprinkles = 200;      // The maximum number of Sprinkles allowed on screen
     private int _minSprinkles = 0;      // The minimum number of Sprinkles allowed on screen
-    private int _maxNewSprinkles = 60;   // The # of Sprinkles allowed to appear per-second
+    private int _maxNewSprinkles = 10;   // The # of Sprinkles allowed to appear per-second
     private float _maxVelocity = 0.02;     // The maximum speed a sprinkle can have
     private float _maxAcceleration = 0.001; // The maximum accelleration for a sprinkle
     // Known ID's
     private ArrayList<TimeStampedID> knownIDs;
     // Sprinkle buffer
     private ArrayList<Sprinkle> sprinkleBuffer= new ArrayList<Sprinkle>();
-    NetAddress controlAddress = new NetAddress("10.0.0.255", PORT);
+    NetAddress controlAddress = new NetAddress("192.168.1.255", PORT);
+    NetAddressList nodeAddresses = new NetAddressList();
 
 
     // Useful functions
