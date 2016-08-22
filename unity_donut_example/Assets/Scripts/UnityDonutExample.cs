@@ -3,133 +3,158 @@ using System.Collections;
 using System.Collections.Generic;
 using ExquisiteDonut;
 
+[RequireComponent (typeof (Osc))]
+[RequireComponent (typeof (UDPPacketIO))]
+
 public class UnityDonutExample : MonoBehaviour {
 	// Required for OSC Donut
-	private List<Sprinkle> sprinkles;
-	private List<int> sprinklesToRemove;
 	private DonutCop cop;
+	private SprinkleManager sprinkles;
 
 	// Variables for projecting dots onto plane
-	int h;
 	int w;
 	RaycastHit hit;
 	Ray ray;
 	private Camera cam;
+
 	// Variables to instantiate and keep track of game objects
 	public GameObject dot;
 	private GameObject[] dots;
-	private List<GameObject> dotsEnabled;
-	private List<GameObject> dotsDisabled;
+
 	// Counter for generating random particles
 	private int counter;
+	private Osc osc;
+	private float maxY;
 
+	public int numSprinkles;
+
+	void Awake() {
+		// Camera params
+		cam = Camera.main;
+		w = cam.pixelWidth;
+
+		// Game settings
+		QualitySettings.vSyncCount = 0;
+		Application.targetFrameRate = -1;
+		float targetFramerate = 60;
+		Time.fixedDeltaTime = 1F / targetFramerate;
+		maxY = (float)cam.pixelHeight / cam.pixelWidth;
+
+	}
+		
 	// Use this for initialization
 	void Start () {
 		// Required for OSC Donut
-		sprinkles = new List<Sprinkle>();
-		sprinklesToRemove = new List<int> ();
-		cop = new DonutCop ();
-		// Camera params
-		cam = Camera.main;
-		h = cam.pixelHeight;
-		w = cam.pixelWidth;
+		sprinkles = new SprinkleManager ();
+		string RemoteIP = "10.0.0.255"; //127.0.0.1 signifies a local host (if testing locally
+		int SendToPort = 9000; //the port you will be sending from
+		int ListenerPort = 9000; //the port you will be listening on
+		UDPPacketIO udp = GetComponent<UDPPacketIO>();
+		udp.init(RemoteIP, SendToPort, ListenerPort);
+		osc = GetComponent<Osc>();
+		osc.init(udp);
+		cop = new DonutCop (osc);
+
+
 		// Preallocate game objects for speed
-		dotsEnabled = new List<GameObject>();
-		dotsDisabled = new List<GameObject>();
 		dots = new GameObject[cop.maxSprinkles()];
 		for (int i = 0; i < dots.Length; i++) {
 			dots [i] = Instantiate(dot);
 			dots [i].transform.position.Set (0, 1000, 0);
-			dotsDisabled.Add (dots [i]);
 		}
+
+		// Counter for generating random sprinkles
 		counter = 0;
+
 	}
-	
-	// Update is called once per frame
-	void Update(){
+
+	// FixedUpdate is called at a constant framerate set above
+	void FixedUpdate(){
+		// Delete sprinkles set for removal
+		sprinkles.ClearRemoved ();
 		// Required for OSC Donut
-		UpdateSprinkles ();
-		// Create random sprinkles for testing
-		counter++;
-		if (counter % 300 == 0) {
-			ProduceRandomSprinkle ();
-		}
-	}
-
-	// Testing function to initialize random sprinkles
-	void ProduceRandomSprinkle(){
-		Vector2 pos = new Vector2 (0, Random.value);
-		Vector2 vel = new Vector2(Random.Range(0.005f,0.01f),0);
-		Vector2 acc = new Vector2(0,0);
-		Sprinkle p = new Sprinkle(pos,vel,acc, 0, 0);
-		cop.BroadcastSprinkle(p);
-	}
-
-	void UpdateSprinkles(){
 		cop.Update (sprinkles.Count);
 		// Add new sprinkles from OSC
 		while(cop.HasNewSprinkles()){
 			Sprinkle p = cop.GetNextSprinkle ();
-			if (cop.AllowedToCreateSprinkle (sprinkles.Count)) {
-				sprinkles.Add (p);
-				int dotsLeft = dotsDisabled.Count;
-				if (dotsLeft > 0) {
-					EnableDot (dotsLeft - 1);
+			sprinkles.Add (p);
+		}
+
+		// Make random sprinkles
+		if (counter % 60 == 0) {
+			ProduceRandomSprinkle ();
+		}
+		counter++;
+
+		// Check if sprinkle is out of bounds or malformed from a bad message
+		for (int i = 0;  i < sprinkles.Count; i++) {
+			Sprinkle p = sprinkles [i];
+			try{
+				if(p.pos.x > 1 || p.pos.x < 0){
+					sprinkles.Remove(p);
+					cop.BroadcastSprinkle (p);
 				}
+				p.Update(cop.maxVelocity(),cop.maxAcceleration());
+				SprinklePhysics(p);
+			}
+			catch{
+				sprinkles.Remove (p);
+				Debug.Log ("Caught malformed sprinkle at" + i);
 			}
 		}
-		// Update sprinkles and their game objects
-		for(int i= 0; i<sprinkles.Count; i++){
-			Sprinkle p = sprinkles[i];
-			// Move sprinkles
-			p.Update(cop.maxVelocity(),cop.maxAcceleration());
-			// Draw sprinkles
-			DrawSprinkle(p, i);
-			// Apply physics to sprinkles for next frame
-			SprinklePhysics(p);
-			// Set to remove and publish sprinkles that are outside screen
-			if(p.pos.x > 1 || p.pos.x < 0){
-				sprinklesToRemove.Add(i);
-			}
+		// Iterate through all sprinkles
+		int sprinkleIdx = 0;
+		// Enable and draw all the dots that have sprinkles attached
+		while (sprinkleIdx < dots.Length && sprinkleIdx < sprinkles.Count) {
+			Sprinkle p = sprinkles [sprinkleIdx];
+			dots[sprinkleIdx].SetActive (true);
+			DrawSprinkle (p, sprinkleIdx);
+			sprinkleIdx++;
 		}
-		// Sort descending to not screw up our indexing
-		sprinklesToRemove.Sort();
-		sprinklesToRemove.Reverse();
-		// Remove and publish sprinkles set for deletion
-		while(sprinklesToRemove.Count>0){
-			int idx = sprinklesToRemove[0];
-			Sprinkle p = sprinkles[idx];
-			dots [idx].transform.position.Set (0, 1000, 0);
-			cop.BroadcastSprinkle(p);
-			sprinkles.Remove(p);
-			sprinklesToRemove.RemoveAt(0);
-			DisableDot (idx);
+		// Disable and hide all the dots that there are no sprinkles for
+		while (sprinkleIdx < dots.Length) {
+			dots[sprinkleIdx].SetActive (false);
+			sprinkleIdx++;
 		}
-		// Remove overflow sprinkles
-		while(sprinkles.Count > cop.maxSprinkles()){
-			sprinkles.RemoveAt(0);
+
+		// Change public variable for editor window
+		numSprinkles = sprinkles.Count;
+	}
+	
+	// Update is called once per frame. You can use this for things that don't have to be 60fps
+	void Update(){
+		// Fix resizing issues in editor
+		w = cam.pixelWidth;
+		maxY = (float)cam.pixelHeight / cam.pixelWidth;
+	}
+
+	// Testing function to initialize random sprinkles
+	void ProduceRandomSprinkle(){
+		Vector2 pos = new Vector2 (0, Random.value*maxY);
+		Vector2 vel = new Vector2 (cop.maxVelocity()/2, 0);//Random.Range(0.005f,0.01f),0);
+		Vector2 acc = new Vector2(0,0);
+		Sprinkle p = new Sprinkle(pos,vel,acc, 0, 0);
+		if (cop.AllowedToCreateSprinkle(sprinkles.Count)){
+			sprinkles.Add (p);
+			cop.MentionNewSprinkle ();
 		}
 	}
 
 	void DrawSprinkle(Sprinkle p, int idx) {
-		ray = cam.ScreenPointToRay (new Vector3 (p.pos.x * w, (1-p.pos.y) * h, 0));
+		ray = cam.ScreenPointToRay (new Vector3 (p.pos.x * w, (maxY-p.pos.y) * w, 0));
 		int layerMask = 1 << 8;
 		if (Physics.Raycast (ray, out hit, Mathf.Infinity, layerMask)) {
 			Debug.DrawLine(ray.origin, hit.point, new Color (0, 1, 0));
-			dotsEnabled [idx].transform.position = hit.point;
+			dots[idx].transform.position = hit.point;
 		}
 	}
 
 	void EnableDot(int idx){
-		dotsEnabled.Add (dotsDisabled [idx]);
-		dotsDisabled [idx].SetActive (true);
-		dotsDisabled.RemoveAt (idx);
+		dots[idx].SetActive (true);
 	}
 
 	void DisableDot(int idx){
-		dotsDisabled.Add (dotsEnabled [idx]);
-		dotsEnabled [idx].SetActive (false);
-		dotsEnabled.RemoveAt (idx);
+		dots[idx].SetActive (true);
 	}
 
 	void SprinklePhysics(Sprinkle p) {
@@ -137,7 +162,7 @@ public class UnityDonutExample : MonoBehaviour {
 		if(p.pos.y<0){
 			p.vel.y = Mathf.Abs(p.vel.y);
 		}
-		else if(p.pos.y>1){
+		else if(p.pos.y>maxY){
 			p.vel.y = Mathf.Abs(p.vel.y)*-1;
 		}
 		else{

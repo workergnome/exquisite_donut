@@ -1,33 +1,37 @@
 // Necessary for exquisite donut to work
 DonutCop cop;
-ArrayList<Sprinkle> sprinkles;
-IntList sprinklesToRemove;
+SprinkleManager sprinkles;
 
 // Other global variables
 PFont font;
 int counter = 0;
+float maxY;
 
 void setup() {
     // Necessary for exquisite donut to work
-    cop = new DonutCop(1);
-    sprinkles  = new ArrayList<Sprinkle>();
-    sprinklesToRemove = new IntList();
+    cop = new DonutCop(0);
+    sprinkles  = new SprinkleManager();
     // Other properties
     smooth(2);
-    //size(640,480,P2D);
-    fullScreen();
+    size(640,480,P2D);
+    //fullScreen();
     frameRate(60);
     font = createFont("Courier New",48);
     noStroke();
+    maxY = float(height)/width;
+    println(maxY);
+
 }
 
 // Testing function to initialize random sprinkles
 void produceRandomSprinkle(){
-    PVector pos = new PVector(0,random(1));
-    PVector vel = new PVector(random(.005)+.005,0);
+    PVector pos = new PVector(0,random(maxY));
+    PVector vel = new PVector(1*(random(.005)+.005),0);
     PVector acc = new PVector(0,0);
     Sprinkle p = new Sprinkle(pos,vel,acc, 0, 0);
-    cop.broadcastSprinkle(p);
+    sprinkles.add(p);
+    //cop.broadcastSprinkle(p);
+    cop.mentionNewSprinkle();
 }
 
 void draw() {
@@ -35,8 +39,10 @@ void draw() {
     background(0);
     // Update and draw sprinkles
     updateSprinkles();
-    if(counter%1 ==0){
-        //produceRandomSprinkle();   
+    // Make a random sprinkle every second if the cop allows it
+    if(counter%60 ==0){
+        if(cop.allowedToCreateSprinkle(sprinkles.size()))
+          produceRandomSprinkle(); 
     }
     counter++;
     textFont(font,24);
@@ -47,9 +53,9 @@ void draw() {
 void drawSprinkle(Sprinkle p) {
     int ballSize = 50;
     float xBorder = -(float)ballSize/width/2;
-    float yBorder = (float)ballSize/height/2;
+    float yBorder = (float)ballSize/width/2;
     float xPos = (1-xBorder*2)*p.pos.x*width+width*(xBorder);
-    float yPos = (1-yBorder*2)*p.pos.y*height+height*(yBorder);
+    float yPos = (1-yBorder*2)*p.pos.y*width+width*(yBorder);
     fill(255,p.pos.y*255.0,p.pos.x*255.0);
     ellipse(xPos,yPos, ballSize, ballSize);
 }
@@ -59,48 +65,47 @@ void sprinklePhysics(Sprinkle p) {
     if(p.pos.y<0){
        p.vel.y = Math.abs(p.vel.y);
     }
-    else if(p.pos.y>1){
+    else if(p.pos.y>maxY){
        p.vel.y = Math.abs(p.vel.y)*-1;
     }
     else{
         // Positive acceleration because y goes 0-Max top to bottom
-        //p.acc.y = .0002;   
+        p.acc.y = .0002;   
     }
 }
 
 void updateSprinkles(){
+    // Update donut_cop object and load received messages
     cop.update(sprinkles.size());
     // Add new sprinkles
     while(cop.hasNewSprinkles()){
         // Get next sprinkle
         Sprinkle p = cop.getNextSprinkle();
-        // Check if we can add it
-        if(cop.allowedToCreateSprinkle(sprinkles.size())){
-            sprinkles.add(p);
-        }
+        // Add it to the scene
+        sprinkles.add(p);
     }
     // Update sprinkles
     for(int i= 0; i<sprinkles.size(); i++){
         Sprinkle p = sprinkles.get(i);
         // Move sprinkles
-        p.update(cop.maxVelocity(),cop.maxAcceleration());
+        try{ p.update(cop.maxVelocity(),cop.maxAcceleration()); }
+        // Safely remove sprinkles that for some reason don't update (usually a bad message)
+        catch(Exception e){
+          sprinkles.removeSafe(p);
+          println("FOUND A MALFORMED SPRINKLE AT" + i);
+          // Skip this loop iteration
+          continue;
+        }
         // Draw sprinkles
         drawSprinkle(p);
         // Apply physics to sprinkles for next frame
         sprinklePhysics(p);
-        // Set to remove and publish sprinkles that are outside screen
+        // Publish sprinkles that are outside screen and mark them for deletion
         if(p.pos.x > 1 || p.pos.x < 0){
-            sprinklesToRemove.append(i);
+            cop.broadcastSprinkle(p);
+            sprinkles.removeSafe(p);
         }
     }
-    // Sort descending to not screw up our indexing
-    sprinklesToRemove.sortReverse();
-    // Remove and publish sprinkles set for deletion
-    while(sprinklesToRemove.size()>0){
-        int idx = sprinklesToRemove.get(0);
-        Sprinkle p = sprinkles.get(idx);
-        cop.broadcastSprinkle(p);
-        sprinkles.remove(p);
-        sprinklesToRemove.remove(0);
-    }    
+    // Actually remove sprinkles marked for deletion
+    sprinkles.clearRemoved();
 }
