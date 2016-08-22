@@ -9,12 +9,8 @@ float maxY;
 
 void setup() {
     // Necessary for exquisite donut to work
-    int ID = 0;
-    // Your IP might be different than this one
-    String broadastAddress = "10.0.0.255";
-    cop = new DonutCop(ID, broadastAddress);
+    cop = new DonutCop(0);
     sprinkles  = new SprinkleManager();
-    
     // Other properties
     smooth(2);
     size(640,480,P2D);
