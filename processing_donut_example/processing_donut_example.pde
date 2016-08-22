@@ -20,13 +20,13 @@ void setup() {
     noStroke();
     maxY = float(height)/width;
     println(maxY);
-    
+
 }
 
 // Testing function to initialize random sprinkles
 void produceRandomSprinkle(){
     PVector pos = new PVector(0,random(maxY));
-    PVector vel = new PVector(cop.maxVelocity()/2.5 ,0);//1*(random(.005)+.005),0);
+    PVector vel = new PVector(1*(random(.005)+.005),0);
     PVector acc = new PVector(0,0);
     Sprinkle p = new Sprinkle(pos,vel,acc, 0, 0);
     sprinkles.add(p);
@@ -39,7 +39,8 @@ void draw() {
     background(0);
     // Update and draw sprinkles
     updateSprinkles();
-    if(counter%1 ==0){
+    // Make a random sprinkle every second if the cop allows it
+    if(counter%60 ==0){
         if(cop.allowedToCreateSprinkle(sprinkles.size()))
           produceRandomSprinkle(); 
     }
@@ -74,30 +75,32 @@ void sprinklePhysics(Sprinkle p) {
 }
 
 void updateSprinkles(){
+    // Update donut_cop object and load received messages
     cop.update(sprinkles.size());
     // Add new sprinkles
     while(cop.hasNewSprinkles()){
         // Get next sprinkle
         Sprinkle p = cop.getNextSprinkle();
-        // Check if we can add it
+        // Add it to the scene
         sprinkles.add(p);
     }
     // Update sprinkles
     for(int i= 0; i<sprinkles.size(); i++){
         Sprinkle p = sprinkles.get(i);
         // Move sprinkles
-        try{
-        p.update(cop.maxVelocity(),cop.maxAcceleration()); }
+        try{ p.update(cop.maxVelocity(),cop.maxAcceleration()); }
+        // Safely remove sprinkles that for some reason don't update (usually a bad message)
         catch(Exception e){
           sprinkles.removeSafe(p);
           println("FOUND A MALFORMED SPRINKLE AT" + i);
+          // Skip this loop iteration
           continue;
         }
         // Draw sprinkles
         drawSprinkle(p);
         // Apply physics to sprinkles for next frame
         sprinklePhysics(p);
-        // Set to remove and publish sprinkles that are outside screen
+        // Publish sprinkles that are outside screen and mark them for deletion
         if(p.pos.x > 1 || p.pos.x < 0){
             cop.broadcastSprinkle(p);
             sprinkles.removeSafe(p);

@@ -1,6 +1,6 @@
 // Essentially works as an ArrayList but doesn't immediately remove an index.
 // Instead the user has to call clearRemoved to actually remove all the indexes
-// marked for removal, usually in some sort of update loop;
+// marked for removal using removeSafe, usually in some sort of update loop;
 
 import java.util.*;
 class SprinkleManager extends ArrayList<Sprinkle>{
@@ -44,11 +44,34 @@ class SprinkleManager extends ArrayList<Sprinkle>{
         super.clear();
         sprinklesToRemove.clear();
     }
-    
+    // Non-safe removal should also remove from the removal buffer
     @Override
     public Sprinkle remove(int idx){
          Sprinkle result = super.remove(idx);
          sprinklesToRemove.removeValue(idx);
          return result;
+    }
+    @Override
+    public boolean remove(Object o){
+        int idx = this.indexOf(o);
+        if(idx != -1) sprinklesToRemove.removeValue(idx);
+        return super.remove(o);
+    }
+    @Override
+    protected void removeRange(int fromIndex, int toIndex){
+        int diff = fromIndex - toIndex;
+        int sign = diff/abs(diff);
+        for(int i = 0; i<diff; i++){
+            sprinklesToRemove.removeValue(fromIndex + sign*i);
+        }
+        super.removeRange(fromIndex, toIndex);
+    }
+    @Override
+    public boolean removeAll(Collection c){
+        boolean result = false;
+        for(Object o : c){
+            if(this.remove(o)) result = true;
+        }
+        return result;
     }
 }

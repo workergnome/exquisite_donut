@@ -62,7 +62,6 @@ class DonutCop {
     private ArrayList<Sprinkle> sprinkleBuffer= new ArrayList<Sprinkle>();
     NetAddress controlAddress = new NetAddress("10.0.0.255", PORT);
 
-
     // Useful functions
     DonutCop(int _id) {
         id = _id;
