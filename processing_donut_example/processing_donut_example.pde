@@ -1,7 +1,6 @@
 // Necessary for exquisite donut to work
 DonutCop cop;
-ArrayList<Sprinkle> sprinkles;
-IntList sprinklesToRemove;
+SprinkleManager sprinkles;
 
 // Other global variables
 PFont font;
@@ -11,8 +10,7 @@ float maxY;
 void setup() {
     // Necessary for exquisite donut to work
     cop = new DonutCop(0);
-    sprinkles  = new ArrayList<Sprinkle>();
-    sprinklesToRemove = new IntList();
+    sprinkles  = new SprinkleManager();
     // Other properties
     smooth(2);
     size(640,480,P2D);
@@ -22,6 +20,7 @@ void setup() {
     noStroke();
     maxY = float(height)/width;
     println(maxY);
+    
 }
 
 // Testing function to initialize random sprinkles
@@ -70,7 +69,7 @@ void sprinklePhysics(Sprinkle p) {
     }
     else{
         // Positive acceleration because y goes 0-Max top to bottom
-        //p.acc.y = .0002;   
+        p.acc.y = .0002;   
     }
 }
 
@@ -90,7 +89,7 @@ void updateSprinkles(){
         try{
         p.update(cop.maxVelocity(),cop.maxAcceleration()); }
         catch(Exception e){
-          sprinkles.remove(p);
+          sprinkles.removeSafe(p);
           println("FOUND A MALFORMED SPRINKLE AT" + i);
           continue;
         }
@@ -100,17 +99,10 @@ void updateSprinkles(){
         sprinklePhysics(p);
         // Set to remove and publish sprinkles that are outside screen
         if(p.pos.x > 1 || p.pos.x < 0){
-            sprinklesToRemove.append(i);
+            cop.broadcastSprinkle(p);
+            sprinkles.removeSafe(p);
         }
     }
-    // Sort descending to not screw up our indexing
-    sprinklesToRemove.sortReverse();
-    // Remove and publish sprinkles set for deletion
-    while(sprinklesToRemove.size()>0){
-        int idx = sprinklesToRemove.get(0);
-        Sprinkle p = sprinkles.get(idx);
-        cop.broadcastSprinkle(p);
-        sprinkles.remove(p);
-        sprinklesToRemove.remove(0);
-    }    
+    // Actually remove sprinkles marked for deletion
+    sprinkles.clearRemoved();
 }
