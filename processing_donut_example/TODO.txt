@@ -1,54 +1,9 @@
 Rule 1.2
 
-	if ID_NEW is greater than my ID and less than my leftID it should be my
-	left ID.
-	if ID_NEW is less than my ID and greater than my RightID it should be my
-	right ID.
-
-	If no ID is found that is greater than my ID my leftID is set to zero.
-	UNLESS my own ID is zero, in which case my LeftID is the minimum id found.
-	If no ID is found that is less than my ID my right ID is set to the maxID.
-
-	In the OFW example the 'UNLESS' part is not done, so I think it will break.
-
-	     L -->
-
-	R  	0 - 1 - 2 - 3 - 4
-	|   |               |
-	V   9 - 8 - 7 - 6 - 5
-
-Rule 2.0
-
-	Right now the command IP is commented out for testing on other networks.
-
-	Is the command IP meant to be pointing at a different machine that is not
-	in the donut?
-
-	Right now the machine with ID zero sends the message out of its broadcasting
-	port. It also generates its own neighbors because it's not broadcasting
-	to itself. This is redundant with a seperate command module but shouldn't
-	affect performance.
-
-Rule 2.1
-	Only sends to one network address right now. Not sure where the array of
-	receiving IPs should be declared.
-	Note: I assume the conversion to blobs and certain sizes of floats and ints
-	is done in the OSC plugins Therefore no casting is done into blob or int 32
-
-Rule 2.2
-
-	DONE but redundancy with rule 1.2
-
-Rule 4.1
-
-	MAXC is not implemented, MAXP is
-
 Rule 4.2
 
 	MAXP is implemented as a hard rule right now, therefore all particles over
 	MAXP are destroyed. 
-
-	MAXC is not implemented
 
 Rule 4.3
 
@@ -57,18 +12,6 @@ Rule 4.3
 Rule 4.4
 
 	MaxA is a hard rule right now no matter where on the screen one is.
-
-Rule 5.0
-
-	Not sure if this should be enforced by the cop
-
-Rule 5.1
-
-	Because y position is based on height, I am worried that simply adding a y 
-	velocity based on width makes some sort of inconsistency. For example if I
-	wanted to move 45 degrees on a 16:9 screen I would assume a velocity of
-	(1,1) would do that but adding YVEL to YPOS will move the pixel less than
-	adding XVEL to XPOS
 
 Rule 5.2
 
@@ -87,10 +30,6 @@ Rule 5.5
 	Right now the cop does not enforce this
 
 Rule 6.0 
-
-	Not implemented yet
-
-Rule 6.1
 
 	Not implemented yet
 
