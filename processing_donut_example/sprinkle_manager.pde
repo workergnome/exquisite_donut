@@ -56,21 +56,4 @@ class SprinkleManager extends ArrayList<Sprinkle>{
         if(idx != -1) sprinklesToRemove.removeValue(idx);
         return super.remove(o);
     }
-    @Override
-    protected void removeRange(int fromIndex, int toIndex){
-        int diff = fromIndex - toIndex;
-        int sign = diff/abs(diff);
-        for(int i = 0; i<diff; i++){
-            sprinklesToRemove.removeValue(fromIndex + sign*i);
-        }
-        super.removeRange(fromIndex, toIndex);
-    }
-    @Override
-    public boolean removeAll(Collection c){
-        boolean result = false;
-        for(Object o : c){
-            if(this.remove(o)) result = true;
-        }
-        return result;
-    }
 }
