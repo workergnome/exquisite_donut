@@ -27,6 +27,7 @@ void setup() {
 // Testing function to initialize random sprinkles
 void produceRandomSprinkle(){
     PVector pos = new PVector(0,random(maxY));
+    PVector vel = new PVector(cop.maxVelocity()/2.5 ,0);//1*(random(.005)+.005),0);
     PVector acc = new PVector(0,0);
     Sprinkle p = new Sprinkle(pos,vel,acc, 0, 0);
     sprinkles.add(p);
