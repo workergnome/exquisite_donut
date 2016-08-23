@@ -3,10 +3,6 @@ import oscP5.*;
 
 // TODO: 
 // Add automatic ID recognition
-// Update KnownIDs correctly
-// Figure out HOST 
-
-
 public class TimeStampedID {
     long timeStamp;
     int id;
@@ -39,7 +35,8 @@ public class TimeStampedID {
 
 class DonutCop {
     // Global variables
-    String HOST = "localHost";//"10.0.0.87";
+    NetAddress broadcastAddress;
+    String HOST = "localHost";
     int PORT = 9000;
     int ID_EXPIRATION_IN_SECONDS = 10;
     OscP5 osc;
@@ -60,10 +57,9 @@ class DonutCop {
     private ArrayList<TimeStampedID> knownIDs;
     // Sprinkle buffer
     private ArrayList<Sprinkle> sprinkleBuffer= new ArrayList<Sprinkle>();
-    NetAddress controlAddress = new NetAddress("10.0.0.255", PORT);
 
     // Useful functions
-    DonutCop(int _id) {
+    DonutCop(int _id, String address) {
         id = _id;
         // Setup osc
         OscProperties properties = new OscProperties();
@@ -74,6 +70,7 @@ class DonutCop {
         OscListener t = new OscListener();
         osc.addListener(t);
         knownIDs = new ArrayList<TimeStampedID>();
+        broadcastAddress = new NetAddress(address, PORT);
     }
 
     void update(int size) {
@@ -161,14 +158,14 @@ class DonutCop {
         OscMessage m = p.createOSCMessage();
         String address = "/sprinkle/" + str((p.pos.x < 0) ? leftId : rightId);
         m.setAddrPattern(address);
-        osc.send(m,controlAddress);
+        osc.send(m,broadcastAddress);
     }
     // Function to broadcast a status message
     private void sendStatusMessage(int size) {
         OscMessage m = new OscMessage("/status");
         m.add(id);
         m.add(size);
-        osc.send(m, controlAddress);
+        osc.send(m, broadcastAddress);
     }
     // Function to broadcast a control message
     private void sendControlMessage() {
@@ -190,7 +187,7 @@ class DonutCop {
         m.add(_maxNewSprinkles);
         m.add(_maxVelocity);
         m.add(_maxAcceleration);
-        osc.send(m, controlAddress);
+        osc.send(m, broadcastAddress);
     }
     // Function to receive status message
     private void handleStatusMessage(OscMessage m) {
