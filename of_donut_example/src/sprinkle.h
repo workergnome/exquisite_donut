@@ -22,6 +22,7 @@ class Sprinkle{
     float getY() const {return y;};
 
   protected:
+    float maxY;
     float x;
     float y;
     float xVel;
