@@ -45,7 +45,6 @@ public class UnityDonutExample : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		// Required for OSC Donut
-		sprinkles = new SprinkleManager ();
 		string RemoteIP = "10.0.0.255"; //127.0.0.1 signifies a local host (if testing locally
 		int SendToPort = 9000; //the port you will be sending from
 		int ListenerPort = 9000; //the port you will be listening on
@@ -54,6 +53,8 @@ public class UnityDonutExample : MonoBehaviour {
 		osc = GetComponent<Osc>();
 		osc.init(udp);
 		cop = new DonutCop (osc);
+
+		sprinkles = new SprinkleManager (cop.maxSprinkles());
 
 
 		// Preallocate game objects for speed
@@ -102,19 +103,16 @@ public class UnityDonutExample : MonoBehaviour {
 				Debug.Log ("Caught malformed sprinkle at" + i);
 			}
 		}
-		// Iterate through all sprinkles
-		int sprinkleIdx = 0;
-		// Enable and draw all the dots that have sprinkles attached
-		while (sprinkleIdx < dots.Length && sprinkleIdx < sprinkles.Count) {
-			Sprinkle p = sprinkles [sprinkleIdx];
-			dots[sprinkleIdx].SetActive (true);
-			DrawSprinkle (p, sprinkleIdx);
-			sprinkleIdx++;
-		}
+
 		// Disable and hide all the dots that there are no sprinkles for
-		while (sprinkleIdx < dots.Length) {
-			dots[sprinkleIdx].SetActive (false);
-			sprinkleIdx++;
+		for (int i = 0; i< dots.Length; i++) {
+			dots[i].SetActive (false);
+		}
+		// Enable and draw all the dots that have sprinkles attached
+		for (int i = 0; i < dots.Length && i < sprinkles.Count; i++) {
+			Sprinkle p = sprinkles [sprinkles.Count -1 - i];
+			dots[p.id].SetActive (true);
+			DrawSprinkle (p);
 		}
 
 		// Change public variable for editor window
@@ -140,12 +138,12 @@ public class UnityDonutExample : MonoBehaviour {
 		}
 	}
 
-	void DrawSprinkle(Sprinkle p, int idx) {
+	void DrawSprinkle(Sprinkle p) {
 		ray = cam.ScreenPointToRay (new Vector3 (p.pos.x * w, (maxY-p.pos.y) * w, 0));
 		int layerMask = 1 << 8;
 		if (Physics.Raycast (ray, out hit, Mathf.Infinity, layerMask)) {
 			Debug.DrawLine(ray.origin, hit.point, new Color (0, 1, 0));
-			dots[idx].transform.position = hit.point;
+			dots[p.id].transform.position = hit.point;
 		}
 	}
 

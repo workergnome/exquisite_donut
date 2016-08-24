@@ -7,12 +7,13 @@ using UnityOSC;
 namespace ExquisiteDonut
 {
 	public class Sprinkle {
-		
 		public Vector2 pos;
 		public Vector2 vel;
 		public Vector2 acc;
 		public float free1;
 		public float free2;
+
+		public int id = 0;
 
 		public Sprinkle(Vector2 _pos, Vector2 _vel, Vector2 _acc,
 						float _free1, float _free2){
