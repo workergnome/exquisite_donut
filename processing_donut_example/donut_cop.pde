@@ -1,6 +1,6 @@
 import netP5.*;
 import oscP5.*;
-
+import java.util.Arrays;
 // TODO: 
 // Add automatic ID recognition
 public class TimeStampedID {
@@ -174,10 +174,12 @@ class DonutCop {
             return;
         }
         // Generate the byte array for IDs
-        byte[] data = new byte[255];
+        byte[] data = new byte[knownIDs.size()];
         for (int i=0; i<knownIDs.size(); i++) {
             data[i] = (byte)knownIDs.get(i).id;
         }
+        java.util.Arrays.sort(data);
+        
         // Calculate my own IDs because I won't be listening to /control
         CalculateIDs(data);
         OscMessage m = new OscMessage("/control");
@@ -201,7 +203,8 @@ class DonutCop {
         } else {
             knownIDs.add(newID);
         }
-        println("Received an update from ID " + statusId + ": it has " + sprinkles + " sprinkles.");
+        println(knownIDs);
+        //println("Received an update from ID " + statusId + ": it has " + sprinkles + " sprinkles.");
     }
     // Function to receive control message
     private void handleControlMessage(OscMessage m) {
