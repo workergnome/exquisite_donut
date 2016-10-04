@@ -11,14 +11,14 @@ void setup() {
     // Necessary for exquisite donut to work
     int ID = 0;
     // Your IP might be different than this one
-    String broadastAddress = "10.0.0.255";
+    String broadastAddress = "192.168.0.255";
     cop = new DonutCop(ID, broadastAddress);
     sprinkles  = new SprinkleManager();
     
     // Other properties
     smooth(2);
-    size(640,480,P2D);
-    //fullScreen();
+    //size(640,480,P2D);
+    fullScreen();
     frameRate(60);
     font = createFont("Courier New",48);
     noStroke();
@@ -45,8 +45,8 @@ void draw() {
     updateSprinkles();
     // Make a random sprinkle every second if the cop allows it
     if(counter%60 ==0){
-        if(cop.allowedToCreateSprinkle(sprinkles.size()))
-          produceRandomSprinkle(); 
+        //if(cop.allowedToCreateSprinkle(sprinkles.size()))
+          //produceRandomSprinkle(); 
     }
     counter++;
     textFont(font,24);
@@ -58,8 +58,10 @@ void drawSprinkle(Sprinkle p) {
     int ballSize = 50;
     float xBorder = -(float)ballSize/width/2;
     float yBorder = (float)ballSize/width/2;
-    float xPos = (1-xBorder*2)*p.pos.x*width+width*(xBorder);
-    float yPos = (1-yBorder*2)*p.pos.y*width+width*(yBorder);
+    //float xPos = (1-xBorder*2)*p.pos.x*width+width*(xBorder);
+    //float yPos = (1-yBorder*2)*p.pos.y*width+width*(yBorder);
+    float xPos = p.pos.x*width;
+    float yPos = p.pos.y*width;
     fill(255,p.pos.y*255.0,p.pos.x*255.0);
     ellipse(xPos,yPos, ballSize, ballSize);
 }
@@ -74,7 +76,7 @@ void sprinklePhysics(Sprinkle p) {
     }
     else{
         // Positive acceleration because y goes 0-Max top to bottom
-        p.acc.y = .0002;   
+        //p.acc.y = .0002;   
     }
 }
 
