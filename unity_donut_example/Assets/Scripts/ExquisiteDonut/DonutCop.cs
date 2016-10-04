@@ -25,11 +25,7 @@ namespace ExquisiteDonut
 		private int leftId = 0;                  // The id to the left of the screen
 		private int rightId = 0;                 // The id to the right of the screen
 		// Received Control Variables
-<<<<<<< Updated upstream
-		private int _maxSprinkles = 200;      // The maximum number of Sprinkles allowed on screen
-=======
-		private int _maxSprinkles = 5000;      // The maximum number of Sprinkles allowed on screen
->>>>>>> Stashed changes
+		private int _maxSprinkles = 800;      // The maximum number of Sprinkles allowed on screen
 		private int _minSprinkles = 0;      // The minimum number of Sprinkles allowed on screen
 		private int _maxNewSprinkles = 10;   // The # of Sprinkles allowed to appear per-second
 		private float _maxVelocity = 0.02f;     // The maximum speed a sprinkle can have
